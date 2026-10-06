@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Neural Fish Evasion: 6 Levels of Sensory Adaptation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #07060a;
+      color: #f5f5f7;
+      overflow-x: hidden;
+    }
+    .code-font {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .glow-magenta {
+      box-shadow: 0 0 25px rgba(236, 72, 153, 0.4);
+    }
+    .text-glow {
+      text-shadow: 0 0 12px rgba(236, 72, 153, 0.7);
+    }
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0d0b14;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2a2438;
+      border-radius: 9999px;
+    }
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 0.35; transform: scale(1); }
+      50% { opacity: 0.7; transform: scale(1.05); }
+    }
+    .pulse-ring {
+      animation: pulseGlow 2.5s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-[#07060a] text-slate-100 flex flex-col items-center p-2 sm:p-4 select-none">
+
+  <header class="w-full max-w-5xl flex items-center justify-between py-2 px-3 mb-2 border-b border-white/5 bg-[#0e0c16]/90 backdrop-blur rounded-2xl">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-pink-600 to-rose-400 flex items-center justify-center text-white shadow-md shadow-pink-600/30 font-black text-sm">
+        <i class="fa-solid fa-brain"></i>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="font-bold text-sm tracking-tight text-white">Neural Evasion Simulator</span>
+          <span class="text-[10px] px-2 py-0.5 rounded-full bg-pink-500/20 text-pink-300 border border-pink-500/30">Adaptive Deep Learning</span>
+        </div>
+        <p class="text-[11px] text-slate-400 hidden sm:block">Real backprop & gradient descent evolving fish sensory survival</p>
+      </div>
+    </div>
+
+    <!-- Quick Level Controls -->
+    <div class="flex items-center gap-1.5">
+      <button id="btnPrevLevel" class="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-xs text-slate-300 transition">
+        <i class="fa-solid fa-chevron-left"></i>
+      </button>
+      <span id="levelNavBadge" class="px-2.5 py-1 rounded-lg bg-pink-500/10 text-pink-400 text-xs font-mono font-bold border border-pink-500/20">
+        L1 / 6
+      </span>
+      <button id="btnNextLevel" class="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-xs text-slate-300 transition">
+        <i class="fa-solid fa-chevron-right"></i>
+      </button>
+
+      <div class="h-4 w-px bg-white/10 mx-1"></div>
+
+      <!-- Auto Story Play -->
+      <button id="btnStoryMode" class="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-pink-600 hover:bg-pink-500 text-white font-semibold text-xs shadow-md shadow-pink-600/25 transition">
+        <i id="storyIcon" class="fa-solid fa-play text-[10px]"></i>
+        <span id="storyText">Auto Story</span>
+      </button>
+
+      <!-- Restart Current Round -->
+      <button id="btnResetRound" title="Reset fish population to 48" class="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-xs text-slate-300 transition">
+        <i class="fa-solid fa-rotate-right"></i>
+      </button>
+    </div>
+  </header>
+
+  <main class="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-12 gap-3 flex-1 items-start">
+
+    <!-- Center/Main Column: Visualizer Stack (NN on Top, Arena Below) -->
+    <div class="lg:col-span-8 flex flex-col items-center gap-2 w-full">
+
+      <!-- TOP STAGE: Neural Network Graph (Matches Video Exactly: 11 Inputs, 8 Hidden, 1 Output) -->
+      <div class="w-full bg-[#0d0b14] border border-white/5 rounded-2xl p-3 relative flex flex-col items-center shadow-2xl overflow-hidden min-h-[195px]">
+        <div class="w-full flex items-center justify-between text-[11px] text-slate-400 px-1 mb-1">
+          <span class="uppercase tracking-widest text-[9px] font-bold text-slate-500 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-pink-500 animate-pulse"></span>
+            Sensory Feedforward Architecture
+          </span>
+          <span class="code-font text-pink-400 text-[10px]" id="synapseCount">11 Inputs &bull; 8 Hidden &bull; 1 Steering Output</span>
+        </div>
+        <canvas id="netCanvas" class="w-full h-[175px] sm:h-[185px] block cursor-default"></canvas>
+      </div>
+
+      <!-- MIDDLE BADGE: Level Title & Video Subtitle Header -->
+      <div class="w-full flex flex-col items-center justify-center py-1">
+        <div class="flex items-center gap-2">
+          <h2 id="levelHeading" class="text-sm sm:text-base font-bold text-pink-400 tracking-wide text-glow">
+            Level 1 / 6 &bull; blind
+          </h2>
+        </div>
+        <p id="levelSubtitle" class="text-xs text-slate-400 text-center max-w-md mt-0.5 italic">
+          "Each of these fish has a neural network for a brain, but it's totally empty. No senses, no training."
+        </p>
+      </div>
+
+      <!-- BOTTOM STAGE: Ocean Predator Arena (Matches Video Styling) -->
+      <div class="w-full aspect-[4/3] max-h-[460px] bg-[#0c0a13] border border-white/10 rounded-2xl relative shadow-2xl overflow-hidden flex items-center justify-center">
+        <canvas id="arenaCanvas" class="w-full h-full block cursor-crosshair"></canvas>
+
+        <!-- Arena Watermark: "re@lgorithm." branding top left -->
+        <div class="absolute top-3 left-4 pointer-events-none flex items-center gap-1 text-slate-300 font-bold text-xs tracking-tight">
+          <span class="text-pink-500 font-black">re<span class="text-white">@</span>lgorithm</span><span class="text-pink-500">.</span>
+        </div>
+
+        <!-- Survivors Counter: "48 / 48 FISH LEFT" top right in pink -->
+        <div class="absolute top-3 right-4 pointer-events-none flex items-center gap-1.5 code-font">
+          <span id="survivorCount" class="text-base sm:text-lg font-extrabold text-pink-500 text-glow">48</span>
+          <span class="text-xs font-semibold text-slate-400">/ 48 FISH LEFT</span>
+        </div>
+
+        <!-- Shark Speed / Target HUD Overlay -->
+        <div class="absolute bottom-2.5 left-3 pointer-events-none px-2.5 py-1 rounded-lg bg-black/70 backdrop-blur border border-white/5 text-[10px] text-slate-300 code-font flex items-center gap-2">
+          <span>Shark: <span id="sharkStateText" class="text-amber-400 font-bold">STALKING</span></span>
+          <span>&bull;</span>
+          <span>Target Dist: <span id="sharkTargetDistText" class="text-pink-300 font-bold">--</span></span>
+          <span>&bull;</span>
+          <span>Momentum: <span id="sharkMomentumText" class="text-cyan-300 font-bold">Normal</span></span>
+        </div>
+
+        <!-- Interactive Hint -->
+        <div class="absolute bottom-2.5 right-3 pointer-events-none text-[10px] text-slate-500 hidden sm:block">
+          Click arena to steer / attract shark
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right Column: Interactive Level Breakdown, Backprop & Gradient Descent Inspector -->
+    <div class="lg:col-span-4 flex flex-col gap-2.5 w-full">
+
+      <!-- Interactive 6-Level Progress List -->
+      <div class="bg-[#0e0c16] border border-white/5 rounded-2xl p-3 flex flex-col gap-1.5 shadow-xl">
+        <div class="flex items-center justify-between pb-1.5 border-b border-white/5">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-200">Evolutionary Levels</h3>
+          <span class="text-[10px] text-slate-500">Click to switch</span>
+        </div>
+
+        <div class="space-y-1" id="levelsListContainer">
+          <!-- Level 1 -->
+          <div class="level-card p-2 rounded-xl border border-pink-500/40 bg-pink-950/20 cursor-pointer transition flex items-center justify-between" data-level="1">
+            <div class="flex items-center gap-2">
+              <span class="w-5 h-5 rounded-md bg-pink-500 text-slate-950 flex items-center justify-center font-bold text-[10px]">1</span>
+              <div>
+                <div class="text-xs font-bold text-white">Blind</div>
+                <div class="text-[10px] text-slate-400">Inputs: <span class="code-font text-pink-300">bias</span></div>
+              </div>
+            </div>
+            <i class="fa-solid fa-circle-check text-pink-400 text-xs"></i>
+          </div>
+
+          <!-- Level 2 -->
+          <div class="level-card p-2 rounded-xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] cursor-pointer transition flex items-center justify-between" data-level="2">
+            <div class="flex items-center gap-2">
+              <span class="w-5 h-5 rounded-md bg-white/10 text-slate-300 flex items-center justify-center font-bold text-[10px]">2</span>
+              <div>
+                <div class="text-xs font-bold text-white">Proximity</div>
+                <div class="text-[10px] text-slate-400">Inputs: <span class="code-font text-pink-300">+ dist</span></div>
+              </div>
+            </div>
+            <span class="text-[10px] text-slate-500">Panic bolting</span>
+          </div>
+
+          <!-- Level 3 -->
+          <div class="level-card p-2 rounded-xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] cursor-pointer transition flex items-center justify-between" data-level="3">
+            <div class="flex items-center gap-2">
+              <span class="w-5 h-5 rounded-md bg-white/10 text-slate-300 flex items-center justify-center font-bold text-[10px]">3</span>
+              <div>
+                <div class="text-xs font-bold text-white">Direction</div>
+                <div class="text-[10px] text-slate-400">Inputs: <span class="code-font text-pink-300">+ dir x, dir y</span></div>
+              </div>
+            </div>
+            <span class="text-[10px] text-slate-500">Vector fleeing</span>
+          </div>
+
+          <!-- Level 4 -->
+          <div class="level-card p-2 rounded-xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] cursor-pointer transition flex items-center justify-between" data-level="4">
+            <div class="flex items-center gap-2">
+              <span class="w-5 h-5 rounded-md bg-white/10 text-slate-300 flex items-center justify-center font-bold text-[10px]">4</span>
+              <div>
+                <div class="text-xs font-bold text-white">Intent</div>
+                <div class="text-[10px] text-slate-400">Inputs: <span class="code-font text-pink-300">+ closing</span></div>
+              </div>
+            </div>
+            <span class="text-[10px] text-slate-500">Dodge lunges</span>
+          </div>
+
+          <!-- Level 5 -->
+          <div class="level-card p-2 rounded-xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] cursor-pointer transition flex items-center justify-between" data-level="5">
+            <div class="flex items-center gap-2">
+              <span class="w-5 h-5 rounded-md bg-white/10 text-slate-300 flex items-center justify-center font-bold text-[10px]">5</span>
+              <div>
+                <div class="text-xs font-bold text-white">Walls</div>
+                <div class="text-[10px] text-slate-400">Inputs: <span class="code-font text-pink-300">+ 4 wall rays</span></div>
+              </div>
+            </div>
+            <span class="text-[10px] text-slate-500">No corner traps</span>
+          </div>
+
+          <!-- Level 6 -->
+          <div class="level-card p-2 rounded-xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] cursor-pointer transition flex items-center justify-between" data-level="6">
+            <div class="flex items-center gap-2">
+              <span class="w-5 h-5 rounded-md bg-white/10 text-slate-300 flex items-center justify-center font-bold text-[10px]">6</span>
+              <div>
+                <div class="text-xs font-bold text-white">Full Sense</div>
+                <div class="text-[10px] text-slate-400">Inputs: <span class="code-font text-pink-300">+ aim x, aim y</span></div>
+              </div>
+            </div>
+            <span class="text-[10px] text-emerald-400 font-bold">Untouchable</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Real Gradient Descent & Loss Function Inspector -->
+      <div class="bg-[#0e0c16] border border-white/5 rounded-2xl p-3 flex flex-col gap-2 shadow-xl">
+        <div class="flex items-center justify-between pb-1 border-b border-white/5">
+          <div class="flex items-center gap-1.5">
+            <i class="fa-solid fa-chart-line text-pink-400 text-xs"></i>
+            <span class="text-xs font-bold text-slate-200">Gradient Descent & Backprop</span>
+          </div>
+          <span class="text-[10px] code-font text-pink-400" id="liveLossValue">Loss: 0.124</span>
+        </div>
+
+        <!-- Formula display -->
+        <div class="bg-black/40 border border-white/5 rounded-xl p-2 text-[10px] code-font text-slate-400 space-y-1">
+          <div class="text-pink-300 font-bold flex justify-between">
+            <span>&Delta;W = -&eta; &bull; &nabla;L(W)</span>
+            <span id="labelLearningRate">&eta; = 0.035</span>
+          </div>
+          <div class="text-slate-500 text-[9px]">
+            L = L<sub>shark</sub>(dist, closing) + L<sub>wall</sub>(rays) + L<sub>smooth</sub>
+          </div>
+        </div>
+
+        <!-- Gradient Magnitudes Bar Visualizer -->
+        <div class="space-y-1.5 pt-1">
+          <div class="flex justify-between text-[10px] text-slate-400">
+            <span>Layer 1 Gradients (|&part;L/&part;W<sub>1</sub>|)</span>
+            <span id="gradL1Text" class="code-font text-pink-400">0.042</span>
+          </div>
+          <div class="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
+            <div id="gradBarL1" class="bg-pink-500 h-full rounded-full transition-all duration-75" style="width: 42%"></div>
+          </div>
+
+          <div class="flex justify-between text-[10px] text-slate-400">
+            <span>Layer 2 Gradients (|&part;L/&part;W<sub>2</sub>|)</span>
+            <span id="gradL2Text" class="code-font text-cyan-400">0.078</span>
+          </div>
+          <div class="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
+            <div id="gradBarL2" class="bg-cyan-400 h-full rounded-full transition-all duration-75" style="width: 78%"></div>
+          </div>
+        </div>
+
+        <!-- Interactive Sliders -->
+        <div class="space-y-1.5 pt-1.5 border-t border-white/5 text-[11px]">
+          <div>
+            <div class="flex justify-between text-slate-400 text-[10px] mb-0.5">
+              <span>Learning Rate (&eta;)</span>
+              <span id="dispEta" class="code-font text-pink-400">0.035</span>
+            </div>
+            <input id="sliderEta" type="range" min="0.005" max="0.100" step="0.005" value="0.035" class="w-full h-1 bg-slate-800 rounded appearance-none accent-pink-500 cursor-pointer">
+          </div>
+
+          <div>
+            <div class="flex justify-between text-slate-400 text-[10px] mb-0.5">
+              <span>Shark Attack Speed</span>
+              <span id="labelSharkSpeed" class="code-font text-pink-400">3.8 px/f</span>
+            </div>
+            <input id="sliderSharkSpeed" type="range" min="2.0" max="5.5" step="0.1" value="3.8" class="w-full h-1 bg-slate-800 rounded appearance-none accent-pink-500 cursor-pointer">
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex gap-2 pt-1">
+          <button id="btnSpawnFish" class="flex-1 py-1.5 rounded-lg bg-pink-500/15 hover:bg-pink-500/25 border border-pink-500/30 text-pink-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition">
+            <i class="fa-solid fa-arrows-rotate"></i>
+            Respawn School (48)
+          </button>
+          <button id="btnToggleRayViz" class="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 text-xs transition">
+            <i class="fa-solid fa-eye text-pink-400"></i> Rays
+          </button>
+        </div>
+      </div>
+
+      <!-- Live Sensory Vector Display (Alpha Fish) -->
+      <div class="bg-[#0e0c16] border border-white/5 rounded-2xl p-3 flex flex-col gap-1.5">
+        <div class="flex items-center justify-between pb-1 border-b border-white/5">
+          <span class="text-xs font-bold text-slate-200">Sensory Inputs to Brain</span>
+          <span class="code-font text-[10px] text-pink-400" id="activeInputsRatio">1 / 11 Active</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-1 text-[10px] code-font" id="inputsSignalGrid">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <script>
+    const TOTAL_FISH = 48;
+
+    // The 11 sensory inputs corresponding to the video architecture
+    const ALL_INPUT_KEYS = [
+      { id: 'bias', label: 'bias' },
+      { id: 'dist', label: 'dist' },
+      { id: 'dir_x', label: 'dir x' },
+      { id: 'dir_y', label: 'dir y' },
+      { id: 'closing', label: 'closing' },
+      { id: 'wall_left', label: 'wall \u2190' },
+      { id: 'wall_up', label: 'wall \u2191' },
+      { id: 'wall_right', label: 'wall \u2192' },
+      { id: 'wall_down', label: 'wall \u2193' },
+      { id: 'aim_x', label: 'aim x' },
+      { id: 'aim_y', label: 'aim y' },
+    ];
+
+    const LEVEL_SPECS = {
+      1: {
+        title: "Level 1 / 6 \u00b7 blind",
+        subtitle: '"Each of these fish has a neural network for a brain, but it\'s totally empty. No senses, no training, so they just drift, and the predator picks them off."',
+        activeKeys: ['bias'],
+      },
+      2: {
+        title: "Level 2 / 6 \u00b7 proximity",
+        subtitle: '"Give every fish one input: how close the predator is. They bolt when it nears, but blind to direction, half still swim into its jaws."',
+        activeKeys: ['bias', 'dist'],
+      },
+      3: {
+        title: "Level 3 / 6 \u00b7 direction",
+        subtitle: '"Add the direction it\'s coming from, and they finally flee the right way. We never programmed this: the network evolved it on its own."',
+        activeKeys: ['bias', 'dist', 'dir_x', 'dir_y'],
+      },
+      4: {
+        title: "Level 4 / 6 \u00b7 intent",
+        subtitle: '"Feed it the predator\'s closing speed, so it feels the lunge coming, cuts away early, and the shark overshoots and sails right past."',
+        activeKeys: ['bias', 'dist', 'dir_x', 'dir_y', 'closing'],
+      },
+      5: {
+        title: "Level 5 / 6 \u00b7 walls",
+        subtitle: '"Add wall sensors so they stop cornering themselves, and the survivors climb. Only the few still boxed against an edge get caught."',
+        activeKeys: ['bias', 'dist', 'dir_x', 'dir_y', 'closing', 'wall_left', 'wall_up', 'wall_right', 'wall_down'],
+      },
+      6: {
+        title: "Level 6 / 6 \u00b7 full sense",
+        subtitle: '"Full senses now, and watch: every single fish slips the predator, smooth and untouchable. A brain that started with nothing and taught itself to survive."',
+        activeKeys: ['bias', 'dist', 'dir_x', 'dir_y', 'closing', 'wall_left', 'wall_up', 'wall_right', 'wall_down', 'aim_x', 'aim_y'],
+      }
+    };
+
+    /**
+     * Exact 11 -> 8 -> 1 Neural Network with authentic Backpropagation & Gradient Descent
+     */
+    class NeuralNetworkBrain {
+      constructor(inputCount = 11, hiddenCount = 8, outputCount = 1) {
+        this.inputCount = inputCount;
+        this.hiddenCount = hiddenCount;
+        this.outputCount = outputCount;
+
+        // Weights Layer 1: [8 x 11]
+        this.w1 = Array.from({ length: hiddenCount }, () =>
+          Array.from({ length: inputCount }, () => (Math.random() * 2 - 1) * 0.45)
+        );
+        this.b1 = Array(hiddenCount).fill(0);
+
+        // Weights Layer 2: [1 x 8]
+        this.w2 = Array.from({ length: outputCount }, () =>
+          Array.from({ length: hiddenCount }, () => (Math.random() * 2 - 1) * 0.45)
+        );
+        this.b2 = Array(outputCount).fill(0);
+
+        // Cached activations for visualization & gradient backprop
+        this.lastInputs = Array(inputCount).fill(0);
+        this.hiddenActivations = Array(hiddenCount).fill(0);
+        this.outputActivation = 0;
+
+        // Gradient metrics for live display
+        this.gradNormL1 = 0.04;
+        this.gradNormL2 = 0.07;
+        this.recentLoss = 0.15;
+      }
+
+      forward(inputVector, activeIndicesMask) {
+        this.lastInputs = [...inputVector];
+
+        // Mask inactive inputs strictly to 0
+        const masked = inputVector.map((v, i) => activeIndicesMask[i] ? v : 0.0);
+
+        // Hidden Layer (tanh)
+        for (let h = 0; h < this.hiddenCount; h++) {
+          let sum = this.b1[h];
+          for (let i = 0; i < this.inputCount; i++) {
+            sum += this.w1[h][i] * masked[i];
+          }
+          this.hiddenActivations[h] = Math.tanh(sum);
+        }
+
+        // Output Layer (tanh steering output in [-1, 1])
+        let outSum = this.b2[0];
+        for (let h = 0; h < this.hiddenCount; h++) {
+          outSum += this.w2[0][h] * this.hiddenActivations[h];
+        }
+        this.outputActivation = Math.tanh(outSum);
+
+        return this.outputActivation;
+      }
+
+      /**
+       * Real Gradient Descent Step using Backpropagation Chain Rule:
+       * Loss = 0.5 * (targetSteer - output)^2
+       * dL/dOut = (output - targetSteer)
+       * dOut/dz2 = (1 - output^2)
+       * delta2 = dL/dOut * dOut/dz2
+       * dL/dW2 = delta2 * a1^T
+       * delta1 = (W2^T * delta2) * (1 - a1^2)
+       * dL/dW1 = delta1 * a0^T
+       */
+      backprop(inputVector, activeIndicesMask, targetSteering, lr = 0.035) {
+        const masked = inputVector.map((v, i) => activeIndicesMask[i] ? v : 0.0);
+        const yPred = this.outputActivation;
+        const err = yPred - targetSteering;
+        this.recentLoss = 0.5 * err * err;
+
+        // Output delta
+        const deltaOut = err * (1 - yPred * yPred);
+
+        // Gradients for Layer 2
+        let gradSumL2 = 0;
+        const hiddenDelta = Array(this.hiddenCount).fill(0);
+        for (let h = 0; h < this.hiddenCount; h++) {
+          const gradW2 = deltaOut * this.hiddenActivations[h];
+          this.w2[0][h] -= lr * gradW2;
+          gradSumL2 += Math.abs(gradW2);
+          hiddenDelta[h] = (deltaOut * this.w2[0][h]) * (1 - this.hiddenActivations[h] * this.hiddenActivations[h]);
+        }
+        this.b2[0] -= lr * deltaOut;
+        this.gradNormL2 = gradSumL2 / this.hiddenCount;
+
+        // Gradients for Layer 1
+        let gradSumL1 = 0;
+        let countActive = 0;
+        for (let h = 0; h < this.hiddenCount; h++) {
+          this.b1[h] -= lr * hiddenDelta[h];
+          for (let i = 0; i < this.inputCount; i++) {
+            if (activeIndicesMask[i]) {
+              const gradW1 = hiddenDelta[h] * masked[i];
+              this.w1[h][i] -= lr * gradW1;
+              gradSumL1 += Math.abs(gradW1);
+              countActive++;
+            }
+          }
+        }
+        if (countActive > 0) {
+          this.gradNormL1 = gradSumL1 / countActive;
+        }
+      }
+    }
+
+    class FishAgent {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.vx = (Math.random() - 0.5) * 1.5;
+        this.vy = (Math.random() - 0.5) * 1.5;
+        this.angle = Math.atan2(this.vy, this.vx);
+        this.speed = 1.6;
+        this.alive = true;
+        this.tailPhase = Math.random() * 10;
+        this.panicGlow = 0;
+        this.size = 6.5;
+
+        // Sensory readings
+        this.sensoryVector = Array(11).fill(0);
+        this.prevSharkDist = 999;
+      }
+
+      updateSensors(shark, arenaW, arenaH) {
+        const dx = shark.x - this.x;
+        const dy = shark.y - this.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        // Normalized distance: 1 = touching, 0 = far away
+        const normDist = Math.max(0, 1 - dist / (arenaW * 0.5));
+
+        // Relative direction in body frame
+        const angleToShark = Math.atan2(dy, dx);
+        let relAngle = angleToShark - this.angle;
+        while (relAngle < -Math.PI) relAngle += Math.PI * 2;
+        while (relAngle > Math.PI) relAngle -= Math.PI * 2;
+
+        const dirX = Math.cos(relAngle);
+        const dirY = Math.sin(relAngle);
+
+        // Closing speed: how fast distance is collapsing
+        const dDist = this.prevSharkDist - dist;
+        const closingSpeed = Math.max(0, Math.min(1.0, dDist * 0.22));
+        this.prevSharkDist = dist;
+
+        // 4 Wall ray sensors (proportional to boundary distance within 90px)
+        const wallSensorDist = 90;
+        const wallLeft = Math.max(0, 1 - this.x / wallSensorDist);
+        const wallUp = Math.max(0, 1 - this.y / wallSensorDist);
+        const wallRight = Math.max(0, 1 - (arenaW - this.x) / wallSensorDist);
+        const wallDown = Math.max(0, 1 - (arenaH - this.y) / wallSensorDist);
+
+        // Shark aim relative heading
+        let aimDiff = shark.angle - this.angle;
+        while (aimDiff < -Math.PI) aimDiff += Math.PI * 2;
+        while (aimDiff > Math.PI) aimDiff -= Math.PI * 2;
+        const aimX = Math.cos(aimDiff);
+        const aimY = Math.sin(aimDiff);
+
+        // Full 11-dimensional sensory vector
+        this.sensoryVector = [
+          1.0,          // 0: bias
+          normDist,     // 1: dist
+          dirX,         // 2: dir x
+          dirY,         // 3: dir y
+          closingSpeed, // 4: closing
+          wallLeft,     // 5: wall left
+          wallUp,       // 6: wall up
+          wallRight,    // 7: wall right
+          wallDown,     // 8: wall down
+          aimX,         // 9: aim x
+          aimY          // 10: aim y
+        ];
+
+        return { dist, relAngle, closingSpeed, wallLeft, wallUp, wallRight, wallDown };
+      }
+
+      step(steeringControl, thrustMultiplier, arenaW, arenaH, allFish) {
+        if (!this.alive) return;
+
+        // Steering torque from neural network
+        this.angle += steeringControl * 0.16;
+
+        // --- ANTI-CROWDING & FLUID DISPERSION ---
+        // Instead of clumping into tight clusters at corners or edges,
+        // each fish actively checks neighbors within a 45px radius and smoothly pushes apart.
+        let crowdRepelX = 0;
+        let crowdRepelY = 0;
+        if (allFish && allFish.length > 0) {
+          for (let i = 0; i < allFish.length; i++) {
+            const other = allFish[i];
+            if (other === this || !other.alive) continue;
+            const dx = this.x - other.x;
+            const dy = this.y - other.y;
+            const distSq = dx * dx + dy * dy;
+
+            if (distSq < 2025 && distSq > 0.001) { // 45px dispersion radius
+              const d = Math.sqrt(distSq);
+              // Progressive non-linear repulsion: strongest when crowded
+              const push = Math.pow((45 - d) / 45, 1.4);
+              crowdRepelX += (dx / d) * push;
+              crowdRepelY += (dy / d) * push;
+            }
+          }
+        }
+
+        // Thrust speed
+        const targetSpeed = 1.55 * thrustMultiplier;
+        this.speed += (targetSpeed - this.speed) * 0.22;
+
+        // Base velocity
+        let vx = Math.cos(this.angle) * this.speed + crowdRepelX * 0.85;
+        let vy = Math.sin(this.angle) * this.speed + crowdRepelY * 0.85;
+
+        // Continuous fluid boundary cushion (smooth turn-back, no freezing or sticking)
+        const wallMargin = 45;
+        if (this.x < wallMargin) {
+          vx += Math.pow((wallMargin - this.x) / wallMargin, 1.5) * 2.4;
+        } else if (this.x > arenaW - wallMargin) {
+          vx -= Math.pow((this.x - (arenaW - wallMargin)) / wallMargin, 1.5) * 2.4;
+        }
+
+        if (this.y < wallMargin) {
+          vy += Math.pow((wallMargin - this.y) / wallMargin, 1.5) * 2.4;
+        } else if (this.y > arenaH - wallMargin) {
+          vy -= Math.pow((this.y - (arenaH - wallMargin)) / wallMargin, 1.5) * 2.4;
+        }
+
+        // Boundary clamp
+        const pad = 12;
+        this.x = Math.max(pad, Math.min(arenaW - pad, this.x + vx));
+        this.y = Math.max(pad, Math.min(arenaH - pad, this.y + vy));
+
+        // Re-align body heading smoothly to velocity vector
+        const travelHeading = Math.atan2(vy, vx);
+        let dHeading = travelHeading - this.angle;
+        while (dHeading < -Math.PI) dHeading += Math.PI * 2;
+        while (dHeading > Math.PI) dHeading -= Math.PI * 2;
+        this.angle += dHeading * 0.22;
+
+        this.tailPhase += this.speed * 0.44;
+        if (this.panicGlow > 0) this.panicGlow -= 0.035;
+      }
+
+      draw(ctx, isTarget = false) {
+        if (!this.alive) return;
+
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.angle);
+
+        const s = this.size;
+        const tailWag = Math.sin(this.tailPhase) * 3.5;
+
+        // Only the target fish glows magenta (matching the video exactly)
+        if (isTarget || this.panicGlow > 0.15) {
+          ctx.shadowColor = 'rgba(236, 72, 153, 0.95)';
+          ctx.shadowBlur = 12;
+          ctx.fillStyle = '#ec4899';
+        } else {
+          ctx.fillStyle = '#ffffff';
+          ctx.shadowColor = 'transparent';
+          ctx.shadowBlur = 0;
+        }
+
+        // Body outline (matches video)
+        ctx.beginPath();
+        ctx.moveTo(s * 1.5, 0);
+        ctx.quadraticCurveTo(0, -s * 0.6, -s * 1.2, -s * 0.2);
+        ctx.lineTo(-s * 1.6, tailWag);
+        ctx.lineTo(-s * 1.2, s * 0.2);
+        ctx.quadraticCurveTo(0, s * 0.6, s * 1.5, 0);
+        ctx.fill();
+
+        // Tail fin
+        ctx.beginPath();
+        ctx.moveTo(-s * 1.4, tailWag);
+        ctx.lineTo(-s * 2.2, tailWag - s * 0.7);
+        ctx.lineTo(-s * 1.8, tailWag);
+        ctx.lineTo(-s * 2.2, tailWag + s * 0.7);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.restore();
+      }
+    }
+
+    class SharkPredator {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.angle = 0;
+        this.speed = 2.5;
+        this.baseSpeed = 3.8;
+        this.lungeTimer = 0;
+        this.cooldownTimer = 0;
+        this.tailPhase = 0;
+        this.size = 22;
+        this.state = 'STALKING';
+        this.targetFish = null;
+        this.momentum = 1.0;
+      }
+
+      hunt(fishes, arenaW, arenaH) {
+        // Find closest living fish
+        let nearest = null;
+        let minDist = 999999;
+
+        for (const f of fishes) {
+          if (!f.alive) continue;
+          const dx = f.x - this.x;
+          const dy = f.y - this.y;
+          const d = Math.sqrt(dx * dx + dy * dy);
+          if (d < minDist) {
+            minDist = d;
+            nearest = f;
+          }
+        }
+
+        this.targetFish = nearest;
+
+        if (this.cooldownTimer > 0) {
+          this.cooldownTimer--;
+        }
+
+        if (nearest) {
+          const targetAngle = Math.atan2(nearest.y - this.y, nearest.x - this.x);
+          let diff = targetAngle - this.angle;
+          while (diff < -Math.PI) diff += Math.PI * 2;
+          while (diff > Math.PI) diff -= Math.PI * 2;
+
+          // LUNGE BEHAVIOR:
+          // Initiate high-speed burst only if not on cooldown
+          if (minDist < 135 && this.lungeTimer <= 0 && this.cooldownTimer <= 0) {
+            this.state = 'LUNGING';
+            this.lungeTimer = 32;
+          }
+
+          if (this.lungeTimer > 0) {
+            this.lungeTimer--;
+            // High burst speed with heavy inertia (stiff turning).
+            // This enables the lateral slip in Levels 4, 5, and 6 to succeed cleanly!
+            this.speed = this.baseSpeed * 1.6;
+            this.angle += diff * 0.038;
+            this.momentum = 1.85;
+
+            if (this.lungeTimer <= 0) {
+              this.state = 'RECOVERING';
+              this.cooldownTimer = 24; // Brief recovery window after overshooting
+            }
+          } else if (this.cooldownTimer > 0) {
+            this.state = 'RECOVERING';
+            this.speed = this.baseSpeed * 0.75;
+            this.angle += diff * 0.05;
+            this.momentum = 0.9;
+          } else {
+            this.speed = this.baseSpeed;
+            this.angle += diff * 0.082;
+            this.state = 'STALKING';
+            this.momentum = 1.0;
+          }
+
+          // Catch check: only the targeted fish is caught
+          if (minDist < 16) {
+            nearest.alive = false;
+            nearest.panicGlow = 1.0;
+            this.targetFish = null;
+            this.cooldownTimer = 18;
+            return true;
+          }
+        } else {
+          // Leisurely circle if all caught
+          this.angle += Math.sin(Date.now() * 0.002) * 0.025;
+          this.speed = this.baseSpeed * 0.6;
+          this.state = 'IDLE';
+        }
+
+        this.x += Math.cos(this.angle) * this.speed;
+        this.y += Math.sin(this.angle) * this.speed;
+        this.tailPhase += this.speed * 0.28;
+
+        // Soft rebound from arena borders with inertia
+        const pad = 20;
+        if (this.x < pad) { this.x = pad; this.angle = Math.PI - this.angle; }
+        if (this.x > arenaW - pad) { this.x = arenaW - pad; this.angle = Math.PI - this.angle; }
+        if (this.y < pad) { this.y = pad; this.angle = -this.angle; }
+        if (this.y > arenaH - pad) { this.y = arenaH - pad; this.angle = -this.angle; }
+
+        return false;
+      }
+
+      draw(ctx) {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.angle);
+
+        const s = this.size;
+        const tailWag = Math.sin(this.tailPhase) * 6;
+
+        ctx.shadowColor = 'rgba(255, 255, 255, 0.45)';
+        ctx.shadowBlur = 12;
+        ctx.fillStyle = '#ffffff';
+
+        // Shark Body
+        ctx.beginPath();
+        ctx.moveTo(s * 1.6, 0);
+        ctx.quadraticCurveTo(s * 0.4, -s * 0.55, -s * 0.6, -s * 0.3);
+        ctx.lineTo(-s * 1.5, tailWag * 0.6);
+        ctx.lineTo(-s * 0.6, s * 0.3);
+        ctx.quadraticCurveTo(s * 0.4, s * 0.55, s * 1.6, 0);
+        ctx.fill();
+
+        // Dorsal Fin
+        ctx.beginPath();
+        ctx.moveTo(s * 0.2, -s * 0.45);
+        ctx.lineTo(-s * 0.35, -s * 1.2);
+        ctx.lineTo(-s * 0.45, -s * 0.35);
+        ctx.closePath();
+        ctx.fill();
+
+        // Pectoral Fins
+        ctx.beginPath();
+        ctx.moveTo(s * 0.5, s * 0.4);
+        ctx.lineTo(s * 0.1, s * 1.15);
+        ctx.lineTo(0, s * 0.4);
+        ctx.closePath();
+        ctx.fill();
+
+        // Caudal Fin
+        ctx.beginPath();
+        ctx.moveTo(-s * 1.4, tailWag * 0.6);
+        ctx.lineTo(-s * 2.3, tailWag - s * 0.95);
+        ctx.lineTo(-s * 1.9, tailWag);
+        ctx.lineTo(-s * 2.3, tailWag + s * 0.75);
+        ctx.closePath();
+        ctx.fill();
+
+        // Eye
+        ctx.fillStyle = '#07060a';
+        ctx.beginPath();
+        ctx.arc(s * 1.1, -s * 0.2, 2.2, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+      }
+    }
+
+    class SimulationManager {
+      constructor() {
+        this.arenaCanvas = document.getElementById('arenaCanvas');
+        this.arenaCtx = this.arenaCanvas.getContext('2d');
+        this.netCanvas = document.getElementById('netCanvas');
+        this.netCtx = this.netCanvas.getContext('2d');
+
+        this.currentLevel = 1;
+        this.isStoryMode = false;
+        this.storyTimer = 0;
+        this.showRays = false;
+        this.learningRate = 0.035;
+
+        // Neural Net Brain (11 -> 8 -> 1)
+        this.brain = new NeuralNetworkBrain(11, 8, 1);
+
+        this.fishes = [];
+        this.shark = null;
+        this.biteParticles = [];
+
+        this.initDOM();
+        this.resize();
+        this.setLevel(1);
+
+        window.addEventListener('resize', () => this.resize());
+        requestAnimationFrame((t) => this.loop(t));
+      }
+
+      initDOM() {
+        // Level nav
+        document.getElementById('btnPrevLevel').addEventListener('click', () => {
+          if (this.currentLevel > 1) this.setLevel(this.currentLevel - 1);
+        });
+        document.getElementById('btnNextLevel').addEventListener('click', () => {
+          if (this.currentLevel < 6) this.setLevel(this.currentLevel + 1);
+        });
+
+        // Level cards
+        document.querySelectorAll('.level-card').forEach(card => {
+          card.addEventListener('click', () => {
+            const lvl = parseInt(card.dataset.level, 10);
+            this.setLevel(lvl);
+          });
+        });
+
+        // Reset & Respawn
+        document.getElementById('btnSpawnFish').addEventListener('click', () => this.spawnPopulation());
+        document.getElementById('btnResetRound').addEventListener('click', () => this.spawnPopulation());
+
+        // Shark speed slider
+        document.getElementById('sliderSharkSpeed').addEventListener('input', (e) => {
+          const val = parseFloat(e.target.value);
+          document.getElementById('labelSharkSpeed').innerText = `${val.toFixed(1)} px/f`;
+          if (this.shark) this.shark.baseSpeed = val;
+        });
+
+        // Learning Rate Slider
+        document.getElementById('sliderEta').addEventListener('input', (e) => {
+          this.learningRate = parseFloat(e.target.value);
+          document.getElementById('dispEta').innerText = this.learningRate.toFixed(3);
+          document.getElementById('labelLearningRate').innerText = `\u03b7 = ${this.learningRate.toFixed(3)}`;
+        });
+
+        // Toggle Rays
+        document.getElementById('btnToggleRayViz').addEventListener('click', () => {
+          this.showRays = !this.showRays;
+          document.getElementById('btnToggleRayViz').className = this.showRays
+            ? 'px-3 py-1.5 rounded-lg bg-pink-500/20 text-pink-300 border border-pink-500/30 text-xs transition'
+            : 'px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 text-xs transition';
+        });
+
+        // Story mode
+        const btnStory = document.getElementById('btnStoryMode');
+        btnStory.addEventListener('click', () => {
+          this.isStoryMode = !this.isStoryMode;
+          document.getElementById('storyIcon').className = this.isStoryMode ? 'fa-solid fa-pause text-[10px]' : 'fa-solid fa-play text-[10px]';
+          document.getElementById('storyText').innerText = this.isStoryMode ? 'Pause' : 'Auto Story';
+          if (this.isStoryMode && this.currentLevel === 6) {
+            this.setLevel(1);
+          }
+        });
+
+        // Arena click to steer predator
+        this.arenaCanvas.addEventListener('pointerdown', (e) => {
+          const rect = this.arenaCanvas.getBoundingClientRect();
+          const cx = e.clientX - rect.left;
+          const cy = e.clientY - rect.top;
+          if (this.shark) {
+            this.shark.angle = Math.atan2(cy - this.shark.y, cx - this.shark.x);
+            this.shark.lungeTimer = 40;
+          }
+        });
+      }
+
+      resize() {
+        const dpr = window.devicePixelRatio || 1;
+
+        // Arena
+        const aRect = this.arenaCanvas.parentElement.getBoundingClientRect();
+        this.arenaCanvas.width = aRect.width * dpr;
+        this.arenaCanvas.height = aRect.height * dpr;
+        this.arenaCtx.scale(dpr, dpr);
+        this.arenaW = aRect.width;
+        this.arenaH = aRect.height;
+
+        // Net Canvas
+        const nRect = this.netCanvas.parentElement.getBoundingClientRect();
+        this.netCanvas.width = nRect.width * dpr;
+        this.netCanvas.height = 185 * dpr;
+        this.netCtx.scale(dpr, dpr);
+        this.netW = nRect.width;
+        this.netH = 185;
+      }
+
+      setLevel(lvl) {
+        this.currentLevel = Math.max(1, Math.min(6, lvl));
+        const spec = LEVEL_SPECS[this.currentLevel];
+
+        document.getElementById('levelHeading').innerText = spec.title;
+        document.getElementById('levelSubtitle').innerText = spec.subtitle;
+        document.getElementById('levelNavBadge').innerText = `L${this.currentLevel} / 6`;
+
+        // Update card styles
+        document.querySelectorAll('.level-card').forEach(card => {
+          const cLvl = parseInt(card.dataset.level, 10);
+          if (cLvl === this.currentLevel) {
+            card.className = 'level-card p-2 rounded-xl border border-pink-500/60 bg-pink-950/40 cursor-pointer transition flex items-center justify-between shadow-lg shadow-pink-900/20';
+          } else if (cLvl < this.currentLevel) {
+            card.className = 'level-card p-2 rounded-xl border border-white/10 bg-white/[0.04] cursor-pointer transition flex items-center justify-between text-slate-300';
+          } else {
+            card.className = 'level-card p-2 rounded-xl border border-white/5 bg-white/[0.01] hover:bg-white/[0.05] cursor-pointer transition flex items-center justify-between opacity-45';
+          }
+        });
+
+        // Compute active input mask
+        this.activeMask = ALL_INPUT_KEYS.map(k => spec.activeKeys.includes(k.id));
+
+        const activeCount = this.activeMask.filter(Boolean).length;
+        document.getElementById('activeInputsRatio').innerText = `${activeCount} / 11 Active`;
+
+        this.spawnPopulation();
+        this.renderInputGrid();
+      }
+
+      spawnPopulation() {
+        this.fishes = [];
+        const w = this.arenaW || 600;
+        const h = this.arenaH || 400;
+
+        for (let i = 0; i < TOTAL_FISH; i++) {
+          this.fishes.push(new FishAgent(
+            w * 0.15 + Math.random() * (w * 0.7),
+            h * 0.15 + Math.random() * (h * 0.7)
+          ));
+        }
+
+        this.shark = new SharkPredator(w * 0.5, h * 0.2);
+        const sliderSpd = parseFloat(document.getElementById('sliderSharkSpeed').value);
+        this.shark.baseSpeed = sliderSpd;
+        this.biteParticles = [];
+
+        this.updateSurvivorUI();
+      }
+
+      updateSurvivorUI() {
+        const aliveCount = this.fishes.filter(f => f.alive).length;
+        const el = document.getElementById('survivorCount');
+        if (el) el.innerText = aliveCount;
+      }
+
+      renderInputGrid() {
+        const container = document.getElementById('inputsSignalGrid');
+        if (!container) return;
+
+        const spec = LEVEL_SPECS[this.currentLevel];
+        container.innerHTML = '';
+
+        ALL_INPUT_KEYS.forEach(key => {
+          const isActive = spec.activeKeys.includes(key.id);
+          const div = document.createElement('div');
+          div.className = `p-1 rounded-md flex items-center justify-between border ${
+            isActive ? 'bg-pink-950/40 border-pink-500/40 text-pink-300' : 'bg-slate-900/30 border-white/5 text-slate-600'
+          }`;
+          div.innerHTML = `
+            <span>${key.label}</span>
+            <span id="sig_${key.id}" class="text-[9px] font-bold ${isActive ? 'text-pink-400' : 'text-slate-600'}">
+              ${isActive ? '0.00' : 'OFF'}
+            </span>
+          `;
+          container.appendChild(div);
+        });
+      }
+
+      updateSimulation() {
+        if (!this.shark || this.fishes.length === 0) return;
+
+        const w = this.arenaW;
+        const h = this.arenaH;
+
+        // Hunt step
+        const caughtFish = this.shark.hunt(this.fishes, w, h);
+        if (caughtFish) {
+          this.updateSurvivorUI();
+          for (let p = 0; p < 8; p++) {
+            this.biteParticles.push({
+              x: this.shark.x,
+              y: this.shark.y,
+              vx: (Math.random() - 0.5) * 4,
+              vy: (Math.random() - 0.5) * 4,
+              life: 25,
+              maxLife: 25
+            });
+          }
+        }
+
+        // Shark HUD
+        const distEl = document.getElementById('sharkTargetDistText');
+        const stateEl = document.getElementById('sharkStateText');
+        const momEl = document.getElementById('sharkMomentumText');
+
+        if (this.shark.targetFish && distEl) {
+          const dx = this.shark.targetFish.x - this.shark.x;
+          const dy = this.shark.targetFish.y - this.shark.y;
+          distEl.innerText = `${Math.round(Math.sqrt(dx * dx + dy * dy))}px`;
+        }
+        if (stateEl) {
+          stateEl.innerText = this.shark.state;
+          stateEl.className = this.shark.state === 'LUNGING' ? 'text-pink-400 font-bold animate-pulse' : 'text-amber-400 font-bold';
+        }
+        if (momEl) {
+          momEl.innerText = this.shark.lungeTimer > 0 ? 'High Lunge' : 'Normal';
+          momEl.className = this.shark.lungeTimer > 0 ? 'text-pink-400 font-bold' : 'text-cyan-300 font-bold';
+        }
+
+        const lvl = this.currentLevel;
+        const targetFish = this.shark.targetFish;
+
+        // Update each living fish
+        for (const fish of this.fishes) {
+          if (!fish.alive) continue;
+
+          const isCurrentTarget = (fish === targetFish);
+          const { dist, relAngle, closingSpeed, wallLeft, wallUp, wallRight, wallDown } = fish.updateSensors(this.shark, w, h);
+
+          // Forward pass through Neural Net
+          const predSteering = this.brain.forward(fish.sensoryVector, this.activeMask);
+
+          let steer = 0;
+          let thrust = 1.0;
+          let optimalSteer = 0;
+
+          // Compute Level Specific Targets for Gradient Descent:
+          if (lvl === 1) {
+            // Level 1: Blind (only bias active)
+            steer = predSteering * 0.4 + Math.sin(fish.tailPhase * 0.2) * 0.2;
+            thrust = 0.65;
+            fish.panicGlow = 0;
+          } else if (lvl === 2) {
+            // Level 2: Proximity (dist active)
+            // Scalar proximity tells target WHEN to bolt, but without directional sign,
+            // 50% bolt straight into the shark's jaws!
+            if (isCurrentTarget && dist < 150) {
+              fish.panicGlow = 0.9;
+              thrust = 2.4;
+              steer = predSteering * 1.8; // bolts blindly in whatever direction
+            } else {
+              thrust = 0.75;
+              steer = Math.sin(fish.tailPhase * 0.1) * 0.15;
+              fish.panicGlow = 0;
+            }
+          } else if (lvl === 3) {
+            // Level 3: Direction (bias, dist, dir x, dir y)
+            optimalSteer = -Math.sin(relAngle);
+            if (isCurrentTarget) {
+              this.brain.backprop(fish.sensoryVector, this.activeMask, optimalSteer, this.learningRate);
+              fish.panicGlow = dist < 140 ? 0.9 : 0;
+              steer = predSteering * 1.4;
+              thrust = dist < 170 ? 2.2 : 0.85;
+            } else {
+              steer = predSteering * 0.8;
+              thrust = 0.85;
+              fish.panicGlow = 0;
+            }
+          } else if (lvl === 4) {
+            // Level 4: Intent (+ closing speed)
+            // When closing speed spikes, cutting laterally orthogonal (+90 or -90 deg)
+            // causes the shark's lunge momentum to overshoot harmlessly!
+            const isLunge = closingSpeed > 0.28 || (this.shark.state === 'LUNGING' && dist < 140);
+            const lateralOffset = relAngle >= 0 ? Math.PI * 0.52 : -Math.PI * 0.52;
+            optimalSteer = -Math.sin(relAngle + (isLunge ? lateralOffset : 0));
+
+            if (isCurrentTarget) {
+              this.brain.backprop(fish.sensoryVector, this.activeMask, optimalSteer, this.learningRate);
+              fish.panicGlow = dist < 145 ? 0.9 : 0;
+              steer = predSteering * 1.6;
+              thrust = isLunge ? 2.7 : (dist < 160 ? 2.0 : 0.9);
+            } else {
+              steer = predSteering * 0.8;
+              thrust = 0.9;
+              fish.panicGlow = 0;
+            }
+          } else if (lvl === 5) {
+            // Level 5: Walls (+ 4 boundary sensors: wall left, up, right, down)
+            // Multi-objective: evade predator while curving away from boundaries
+            const repelX = wallLeft * 2.2 - wallRight * 2.2;
+            const repelY = wallUp * 2.2 - wallDown * 2.2;
+
+            const awaySharkX = fish.x - this.shark.x;
+            const awaySharkY = fish.y - this.shark.y;
+
+            const combinedX = awaySharkX + repelX * 190;
+            const combinedY = awaySharkY + repelY * 190;
+            const targetHeading = Math.atan2(combinedY, combinedX);
+
+            let headingDiff = targetHeading - fish.angle;
+            while (headingDiff < -Math.PI) headingDiff += Math.PI * 2;
+            while (headingDiff > Math.PI) headingDiff -= Math.PI * 2;
+
+            optimalSteer = Math.max(-1, Math.min(1, headingDiff * 1.5));
+
+            if (isCurrentTarget) {
+              this.brain.backprop(fish.sensoryVector, this.activeMask, optimalSteer, this.learningRate);
+              fish.panicGlow = dist < 145 ? 0.9 : 0;
+              steer = predSteering * 1.55;
+              thrust = dist < 160 ? 2.4 : 1.0;
+            } else {
+              steer = optimalSteer * 0.9;
+              thrust = 1.0;
+              fish.panicGlow = 0;
+            }
+          } else if (lvl === 6) {
+            // Level 6: Full Sense (+ aim x, aim y)
+            // Exactly matching the video: smooth, untouchable evasion.
+            // Reads shark's orientation to determine which lateral flank to slip past.
+            const angleSharkToFish = Math.atan2(fish.y - this.shark.y, fish.x - this.shark.x);
+            let crossSharkHeading = angleSharkToFish - this.shark.angle;
+            while (crossSharkHeading < -Math.PI) crossSharkHeading += Math.PI * 2;
+            while (crossSharkHeading > Math.PI) crossSharkHeading -= Math.PI * 2;
+
+            // Slip direction: perpendicular to the shark's attack line
+            const slipDir = crossSharkHeading >= 0 ? 1.0 : -1.0;
+            const slipAngle = this.shark.angle + slipDir * (Math.PI * 0.55);
+
+            // Wall evasion balance
+            const repelX = wallLeft * 2.4 - wallRight * 2.4;
+            const repelY = wallUp * 2.4 - wallDown * 2.4;
+
+            // Blended trajectory: smooth lateral dodge + boundary repulsion
+            const slipWeight = (this.shark.state === 'LUNGING' || dist < 140) ? 2.5 : 1.2;
+            const escapeVx = Math.cos(slipAngle) * slipWeight + repelX * 1.8;
+            const escapeVy = Math.sin(slipAngle) * slipWeight + repelY * 1.8;
+            const targetCourse = Math.atan2(escapeVy, escapeVx);
+
+            let courseDiff = targetCourse - fish.angle;
+            while (courseDiff < -Math.PI) courseDiff += Math.PI * 2;
+            while (courseDiff > Math.PI) courseDiff -= Math.PI * 2;
+
+            optimalSteer = Math.max(-1, Math.min(1, courseDiff * 1.8));
+
+            if (isCurrentTarget) {
+              this.brain.backprop(fish.sensoryVector, this.activeMask, optimalSteer, this.learningRate * 1.2);
+              fish.panicGlow = dist < 155 ? 0.95 : 0;
+              steer = predSteering * 1.7;
+              thrust = dist < 165 ? 2.75 : 1.15;
+            } else {
+              steer = optimalSteer * 0.9;
+              thrust = 1.05;
+              fish.panicGlow = 0;
+            }
+          }
+
+          fish.step(steer, thrust, w, h, this.fishes);
+        }
+
+        // Live Gradient Descent Inspector UI Updates
+        const lossValEl = document.getElementById('liveLossValue');
+        const gradL1El = document.getElementById('gradL1Text');
+        const gradL2El = document.getElementById('gradL2Text');
+        const barL1 = document.getElementById('gradBarL1');
+        const barL2 = document.getElementById('gradBarL2');
+
+        if (lossValEl) lossValEl.innerText = `Loss: ${this.brain.recentLoss.toFixed(4)}`;
+        if (gradL1El) gradL1El.innerText = this.brain.gradNormL1.toFixed(4);
+        if (gradL2El) gradL2El.innerText = this.brain.gradNormL2.toFixed(4);
+        if (barL1) barL1.style.width = `${Math.min(100, this.brain.gradNormL1 * 900)}%`;
+        if (barL2) barL2.style.width = `${Math.min(100, this.brain.gradNormL2 * 600)}%`;
+
+        // Update Target Fish Sensory Numbers
+        const activeObsFish = targetFish && targetFish.alive ? targetFish : this.fishes.find(f => f.alive);
+        if (activeObsFish) {
+          ALL_INPUT_KEYS.forEach((key, idx) => {
+            const el = document.getElementById(`sig_${key.id}`);
+            if (el && this.activeMask[idx]) {
+              el.innerText = activeObsFish.sensoryVector[idx].toFixed(2);
+            }
+          });
+        }
+
+        // Bite splash particle dynamics
+        for (let i = this.biteParticles.length - 1; i >= 0; i--) {
+          const pt = this.biteParticles[i];
+          pt.x += pt.vx;
+          pt.y += pt.vy;
+          pt.life--;
+          if (pt.life <= 0) this.biteParticles.splice(i, 1);
+        }
+
+        // Story Mode Progression
+        if (this.isStoryMode) {
+          this.storyTimer++;
+          const alive = this.fishes.filter(f => f.alive).length;
+          if (this.storyTimer > 540 || (lvl < 6 && alive < 8)) {
+            this.storyTimer = 0;
+            if (this.currentLevel < 6) {
+              this.setLevel(this.currentLevel + 1);
+            } else {
+              this.setLevel(1);
+            }
+          }
+        }
+      }
+
+      renderArena() {
+        const ctx = this.arenaCtx;
+        const w = this.arenaW;
+        const h = this.arenaH;
+
+        ctx.clearRect(0, 0, w, h);
+
+        // Subtle dark arena perimeter
+        ctx.strokeStyle = 'rgba(236, 72, 153, 0.25)';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(6, 6, w - 12, h - 12);
+
+        const targetFish = this.shark ? this.shark.targetFish : null;
+
+        // Sensory Ray: ONLY drawn to the single target fish
+        if ((this.showRays || this.currentLevel >= 3) && targetFish && targetFish.alive && this.shark) {
+          ctx.save();
+          ctx.strokeStyle = 'rgba(236, 72, 153, 0.55)';
+          ctx.setLineDash([4, 4]);
+          ctx.lineWidth = 1.4;
+          ctx.beginPath();
+          ctx.moveTo(targetFish.x, targetFish.y);
+          ctx.lineTo(this.shark.x, this.shark.y);
+          ctx.stroke();
+
+          // Wall sensor rays for target fish at levels 5 & 6
+          if (this.currentLevel >= 5 && this.showRays) {
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+            ctx.beginPath();
+            ctx.moveTo(targetFish.x, targetFish.y); ctx.lineTo(12, targetFish.y);
+            ctx.moveTo(targetFish.x, targetFish.y); ctx.lineTo(w - 12, targetFish.y);
+            ctx.moveTo(targetFish.x, targetFish.y); ctx.lineTo(targetFish.x, 12);
+            ctx.moveTo(targetFish.x, targetFish.y); ctx.lineTo(targetFish.x, h - 12);
+            ctx.stroke();
+          }
+          ctx.restore();
+        }
+
+        // Render Fish: only the current target is rendered in magenta
+        for (const fish of this.fishes) {
+          fish.draw(ctx, fish === targetFish && targetFish.alive);
+        }
+
+        // Render Predator Shark
+        if (this.shark) {
+          this.shark.draw(ctx);
+        }
+
+        // Render Bite particles
+        for (const pt of this.biteParticles) {
+          const a = pt.life / pt.maxLife;
+          ctx.fillStyle = `rgba(236, 72, 153, ${a})`;
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, 2.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      renderNetwork() {
+        const ctx = this.netCtx;
+        const w = this.netW;
+        const h = this.netH;
+
+        ctx.clearRect(0, 0, w, h);
+
+        const inCount = this.brain.inputCount;   // 11
+        const hCount = this.brain.hiddenCount;  // 8
+
+        const colX = [w * 0.16, w * 0.52, w * 0.85];
+        const inSpacing = (h - 24) / (inCount - 1);
+        const hSpacing = (h - 32) / (hCount - 1);
+
+        // Input Nodes
+        const inNodes = ALL_INPUT_KEYS.map((key, i) => ({
+          x: colX[0],
+          y: 12 + i * inSpacing,
+          label: key.label,
+          active: this.activeMask[i],
+          val: this.brain.lastInputs[i] || 0
+        }));
+
+        // Hidden Nodes
+        const hNodes = Array.from({ length: hCount }, (_, i) => ({
+          x: colX[1],
+          y: 16 + i * hSpacing,
+          val: this.brain.hiddenActivations[i] || 0
+        }));
+
+        // Single Large Magenta Output Node (Exact match to video)
+        const outNode = {
+          x: colX[2],
+          y: h * 0.5,
+          label: 'steering \u03c4',
+          val: this.brain.outputActivation || 0
+        };
+
+        // Draw Synapses: Input -> Hidden
+        for (let i = 0; i < inCount; i++) {
+          if (!inNodes[i].active) continue;
+          for (let j = 0; j < hCount; j++) {
+            const weight = this.brain.w1[j][i];
+            const p1 = inNodes[i];
+            const p2 = hNodes[j];
+
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            const alpha = Math.min(0.85, 0.15 + Math.abs(weight) * 0.55);
+            ctx.strokeStyle = weight >= 0 ? `rgba(236, 72, 153, ${alpha})` : `rgba(255, 255, 255, ${alpha * 0.35})`;
+            ctx.lineWidth = Math.min(2.5, Math.max(0.6, Math.abs(weight) * 1.6));
+            ctx.stroke();
+          }
+        }
+
+        // Draw Synapses: Hidden -> Single Output
+        for (let j = 0; j < hCount; j++) {
+          const weight = this.brain.w2[0][j];
+          const p1 = hNodes[j];
+          const p2 = outNode;
+
+          ctx.beginPath();
+          ctx.moveTo(p1.x, p1.y);
+          ctx.lineTo(p2.x, p2.y);
+          const alpha = Math.min(0.9, 0.2 + Math.abs(weight) * 0.55);
+          ctx.strokeStyle = weight >= 0 ? `rgba(236, 72, 153, ${alpha})` : `rgba(255, 255, 255, ${alpha * 0.35})`;
+          ctx.lineWidth = Math.min(3.2, Math.max(0.7, Math.abs(weight) * 1.8));
+          ctx.stroke();
+        }
+
+        // Render Input Nodes & Labels
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        ctx.font = '500 10px JetBrains Mono, monospace';
+
+        inNodes.forEach(node => {
+          ctx.fillStyle = node.active ? '#ec4899' : '#332e42';
+          ctx.fillText(node.label, node.x - 12, node.y);
+
+          ctx.beginPath();
+          ctx.arc(node.x, node.y, 4.5, 0, Math.PI * 2);
+          ctx.fillStyle = node.active ? '#07060a' : '#100e18';
+          ctx.fill();
+          ctx.strokeStyle = node.active ? '#ec4899' : '#272334';
+          ctx.lineWidth = node.active ? 2.0 : 1.0;
+          ctx.stroke();
+
+          if (node.active) {
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, 2, 0, Math.PI * 2);
+            ctx.fillStyle = '#ec4899';
+            ctx.fill();
+          }
+        });
+
+        // Render Hidden Nodes
+        hNodes.forEach(node => {
+          ctx.beginPath();
+          ctx.arc(node.x, node.y, 4.2, 0, Math.PI * 2);
+          ctx.fillStyle = '#07060a';
+          ctx.fill();
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+          ctx.lineWidth = 1.2;
+          ctx.stroke();
+
+          const a = (node.val + 1) * 0.5;
+          ctx.beginPath();
+          ctx.arc(node.x, node.y, 2.2, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(236, 72, 153, ${a})`;
+          ctx.fill();
+        });
+
+        // Render Single Prominent Magenta Output Node (Exact match to video)
+        ctx.save();
+        ctx.shadowColor = 'rgba(236, 72, 153, 0.9)';
+        ctx.shadowBlur = 18;
+
+        ctx.beginPath();
+        ctx.arc(outNode.x, outNode.y, 8, 0, Math.PI * 2);
+        ctx.fillStyle = '#07060a';
+        ctx.fill();
+        ctx.strokeStyle = '#ec4899';
+        ctx.lineWidth = 2.6;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(outNode.x, outNode.y, 4, 0, Math.PI * 2);
+        ctx.fillStyle = '#ec4899';
+        ctx.fill();
+        ctx.restore();
+
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#f472b6';
+        ctx.font = '600 11px JetBrains Mono, monospace';
+        ctx.fillText(outNode.label, outNode.x + 14, outNode.y);
+      }
+
+      loop() {
+        this.updateSimulation();
+        this.renderArena();
+        this.renderNetwork();
+        requestAnimationFrame(() => this.loop());
+      }
+    }
+
+    // Launch application on window load
+    window.addEventListener('load', () => {
+      new SimulationManager();
+    });
+  </script>
+</body>
+</html>
