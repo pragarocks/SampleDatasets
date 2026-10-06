@@ -1,0 +1,1480 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive ML & DL Masterclass | Cat vs. Dog Lab</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            },
+            cat: '#ec4899',
+            dog: '#3b82f6',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+
+    /* Glow utilities */
+    .glow-cat {
+      box-shadow: 0 0 25px -5px rgba(236, 72, 153, 0.4);
+    }
+    .glow-dog {
+      box-shadow: 0 0 25px -5px rgba(59, 130, 246, 0.4);
+    }
+    .glow-brand {
+      box-shadow: 0 0 30px -5px rgba(99, 102, 241, 0.35);
+    }
+
+    /* Range input styling */
+    input[type=range] {
+      -webkit-appearance: none;
+      background: #334155;
+      border-radius: 9999px;
+      height: 8px;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 20px;
+      width: 20px;
+      border-radius: 50%;
+      background: #6366f1;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(99, 102, 241, 0.6);
+      transition: transform 0.1s ease;
+    }
+    input[type=range]::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans selection:bg-indigo-500 selection:text-white">
+
+  <div id="progress-bar" class="fixed top-0 left-0 h-1 bg-gradient-to-r from-pink-500 via-indigo-500 to-blue-500 z-50 transition-all duration-100" style="width: 0%;"></div>
+
+  <nav class="sticky top-0 z-40 bg-slate-950/80 backdrop-blur-md border-b border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <span class="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-pink-500 text-white font-bold text-xl shadow-lg">
+          🐾
+        </span>
+        <div>
+          <span class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-pink-400 via-indigo-300 to-blue-400 bg-clip-text text-transparent">
+            ML & DL Explorer
+          </span>
+          <span class="hidden sm:inline-block ml-2 text-xs px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
+            Cat vs. Dog Edition
+          </span>
+        </div>
+      </div>
+
+      <div class="hidden md:flex items-center space-x-6 text-sm font-medium text-slate-300">
+        <a href="#section-1" class="hover:text-indigo-400 transition">1. ML Types</a>
+        <a href="#section-2" class="hover:text-indigo-400 transition">2. Classification Lab</a>
+        <a href="#section-3" class="hover:text-indigo-400 transition">3. Applications</a>
+        <a href="#section-4" class="hover:text-indigo-400 transition">4. Deep Learning</a>
+        <a href="#section-5" class="hover:text-indigo-400 transition">5. GenAI Connection</a>
+      </div>
+
+      <div class="flex items-center space-x-3">
+        <button id="sound-toggle-btn" class="p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:border-slate-700 transition flex items-center space-x-1.5 text-xs" title="Toggle audio feedback">
+          <span id="sound-icon">🔈</span>
+          <span id="sound-label" class="hidden sm:inline">Audio: Off</span>
+        </button>
+        <a href="#interactive-playground" class="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs shadow-md shadow-indigo-600/30 transition">
+          Launch Lab ⚡
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="relative overflow-hidden pt-12 pb-20 border-b border-slate-900">
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(99,102,241,0.25),rgba(255,255,255,0))] pointer-events-none"></div>
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+      
+      <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-indigo-950/70 border border-indigo-500/30 text-indigo-300 text-xs font-medium mb-6">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span>Interactive Educational Masterclass</span>
+      </div>
+
+      <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight text-white mb-6">
+        From Raw Pixels to Intelligence: <br class="hidden sm:block" />
+        <span class="bg-gradient-to-r from-pink-400 via-indigo-400 to-blue-400 bg-clip-text text-transparent">
+          Machine Learning, Deep Learning & GenAI
+        </span>
+      </h1>
+
+      <p class="max-w-3xl mx-auto text-slate-300 text-base sm:text-lg leading-relaxed mb-10">
+        How does an artificial intelligence distinguish a fluffy ragdoll cat from a golden retriever? Explore the math, decision boundaries, neural networks, and generative models through this interactive, hands-on visual guide.
+      </p>
+
+      <!-- Quick Stats/Hero Badges -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-4xl mx-auto text-left">
+        <div class="p-4 rounded-xl bg-slate-900/70 border border-slate-800">
+          <div class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-1">Paradigm</div>
+          <div class="text-base font-bold text-pink-400">4 Learning Modes</div>
+          <div class="text-xs text-slate-400 mt-1">Supervised to RL</div>
+        </div>
+        <div class="p-4 rounded-xl bg-slate-900/70 border border-slate-800">
+          <div class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-1">Engine</div>
+          <div class="text-base font-bold text-indigo-400">Decision Space</div>
+          <div class="text-xs text-slate-400 mt-1">Live 2D Feature Math</div>
+        </div>
+        <div class="p-4 rounded-xl bg-slate-900/70 border border-slate-800">
+          <div class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-1">Vision</div>
+          <div class="text-base font-bold text-blue-400">Hierarchical CNNs</div>
+          <div class="text-xs text-slate-400 mt-1">Pixel → Whisker → Animal</div>
+        </div>
+        <div class="p-4 rounded-xl bg-slate-900/70 border border-slate-800">
+          <div class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-1">Frontier</div>
+          <div class="text-base font-bold text-emerald-400">Generative AI</div>
+          <div class="text-xs text-slate-400 mt-1">Diffusion & Transformers</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-24">
+
+    <section id="section-1" class="scroll-mt-24">
+      <div class="flex items-center space-x-3 mb-4">
+        <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-pink-500/20 text-pink-400 font-mono font-bold text-sm border border-pink-500/30">01</span>
+        <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">Types of Machine Learning</h2>
+      </div>
+      <p class="text-slate-300 text-base leading-relaxed mb-8 max-w-3xl">
+        Machine Learning models are categorized based on how they learn from data. Select a paradigm below to inspect its mechanism, data setup, and how it would solve a cat and dog problem:
+      </p>
+
+      <!-- Interactive Paradigm Switcher -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-6">
+        <button onclick="setParadigm('supervised')" id="btn-paradigm-supervised" class="paradigm-tab px-4 py-3 rounded-xl border border-indigo-500 bg-indigo-950/50 text-indigo-200 font-semibold text-sm transition text-left flex flex-col justify-between">
+          <span class="text-xs text-indigo-400 uppercase font-mono">Type 1</span>
+          <span class="mt-1 text-base">Supervised Learning</span>
+        </button>
+        <button onclick="setParadigm('unsupervised')" id="btn-paradigm-unsupervised" class="paradigm-tab px-4 py-3 rounded-xl border border-slate-800 bg-slate-900/50 text-slate-400 font-semibold text-sm hover:border-slate-700 hover:text-slate-200 transition text-left flex flex-col justify-between">
+          <span class="text-xs text-slate-400 uppercase font-mono">Type 2</span>
+          <span class="mt-1 text-base">Unsupervised</span>
+        </button>
+        <button onclick="setParadigm('semi-supervised')" id="btn-paradigm-semi-supervised" class="paradigm-tab px-4 py-3 rounded-xl border border-slate-800 bg-slate-900/50 text-slate-400 font-semibold text-sm hover:border-slate-700 hover:text-slate-200 transition text-left flex flex-col justify-between">
+          <span class="text-xs text-slate-400 uppercase font-mono">Type 3</span>
+          <span class="mt-1 text-base">Semi-Supervised</span>
+        </button>
+        <button onclick="setParadigm('reinforcement')" id="btn-paradigm-reinforcement" class="paradigm-tab px-4 py-3 rounded-xl border border-slate-800 bg-slate-900/50 text-slate-400 font-semibold text-sm hover:border-slate-700 hover:text-slate-200 transition text-left flex flex-col justify-between">
+          <span class="text-xs text-slate-400 uppercase font-mono">Type 4</span>
+          <span class="mt-1 text-base">Reinforcement (RL)</span>
+        </button>
+      </div>
+
+      <!-- Dynamic Paradigm Content Card -->
+      <div id="paradigm-card" class="rounded-2xl bg-slate-900/90 border border-slate-800 p-6 sm:p-8 transition-all">
+        <!-- Content will be injected dynamically by JS -->
+      </div>
+    </section>
+
+    <section id="section-2" class="scroll-mt-24">
+      <div class="flex items-center space-x-3 mb-4">
+        <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 font-mono font-bold text-sm border border-indigo-500/30">02</span>
+        <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">How Classification Works</h2>
+      </div>
+      <p class="text-slate-300 text-base leading-relaxed mb-6 max-w-3xl">
+        Classification is a supervised learning task where the model maps input data features to categorical labels (e.g., <span class="text-pink-400 font-semibold">Cat</span> vs. <span class="text-blue-400 font-semibold">Dog</span>, Spam vs. Not Spam).
+      </p>
+
+      <!-- Classification Pipeline Steps -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <div class="p-5 rounded-xl bg-slate-900 border border-slate-800 relative">
+          <div class="w-8 h-8 rounded-full bg-slate-800 text-slate-300 font-mono text-xs flex items-center justify-center font-bold mb-3 border border-slate-700">1</div>
+          <h3 class="text-white font-bold text-base mb-2">Feature Extraction</h3>
+          <p class="text-slate-400 text-sm leading-relaxed">
+            Raw observations are measured into numerical metrics. In pets: <strong class="text-slate-200">Ear Pointiness (1–10)</strong> and <strong class="text-slate-200">Snout / Muzzle Length (cm)</strong>.
+          </p>
+        </div>
+
+        <div class="p-5 rounded-xl bg-slate-900 border border-slate-800 relative">
+          <div class="w-8 h-8 rounded-full bg-slate-800 text-slate-300 font-mono text-xs flex items-center justify-center font-bold mb-3 border border-slate-700">2</div>
+          <h3 class="text-white font-bold text-base mb-2">Model Training</h3>
+          <p class="text-slate-400 text-sm leading-relaxed">
+            The algorithm analyzes historical ground-truth pairs to draw an optimal <strong class="text-slate-200">mathematical decision boundary</strong> separating classes in the feature plane.
+          </p>
+        </div>
+
+        <div class="p-5 rounded-xl bg-slate-900 border border-slate-800 relative">
+          <div class="w-8 h-8 rounded-full bg-slate-800 text-slate-300 font-mono text-xs flex items-center justify-center font-bold mb-3 border border-slate-700">3</div>
+          <h3 class="text-white font-bold text-base mb-2">Inference (Prediction)</h3>
+          <p class="text-slate-400 text-sm leading-relaxed">
+            Given an unseen pet, the model checks which side of the boundary the feature vector falls onto and outputs a class probability (e.g., <strong class="text-indigo-300">94% Dog</strong>).
+          </p>
+        </div>
+      </div>
+
+      <div id="interactive-playground" class="rounded-2xl bg-slate-900 border border-slate-800 p-6 sm:p-8 glow-brand relative overflow-hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-6 border-b border-slate-800">
+          <div>
+            <span class="text-xs font-mono font-semibold tracking-wider text-indigo-400 uppercase">Live Hands-On Lab</span>
+            <h3 class="text-xl sm:text-2xl font-bold text-white mt-1">2D Decision Boundary Playground</h3>
+            <p class="text-slate-400 text-xs sm:text-sm mt-0.5">Click anywhere on the coordinate plane to drop an unknown pet and classify it in real-time!</p>
+          </div>
+          <div class="flex items-center space-x-2">
+            <button onclick="resetBoundaryPoints()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700 transition">
+              Reset Points
+            </button>
+            <button onclick="addRandomPet()" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow transition">
+              + Random Pet
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          <!-- Canvas Area -->
+          <div class="lg:col-span-8 flex flex-col items-center">
+            <div class="relative w-full max-w-[550px] aspect-square rounded-xl bg-slate-950 border border-slate-800 overflow-hidden shadow-inner">
+              <canvas id="boundaryCanvas" class="w-full h-full cursor-crosshair"></canvas>
+              
+              <!-- Floating Coordinate indicator -->
+              <div id="canvas-coord" class="absolute top-2 right-2 text-[10px] font-mono bg-slate-900/90 text-slate-300 px-2 py-1 rounded border border-slate-800 pointer-events-none">
+                Hover to inspect
+              </div>
+            </div>
+
+            <!-- Legend -->
+            <div class="flex items-center justify-center space-x-6 mt-4 text-xs font-medium">
+              <div class="flex items-center space-x-2">
+                <span class="w-3 h-3 rounded-full bg-pink-500 shadow-sm shadow-pink-500"></span>
+                <span class="text-slate-300">Cat Domain (🐱 Sharp Ears, Short Snout)</span>
+              </div>
+              <div class="flex items-center space-x-2">
+                <span class="w-3 h-3 rounded-full bg-blue-500 shadow-sm shadow-blue-500"></span>
+                <span class="text-slate-300">Dog Domain (🐶 Floppy Ears, Long Snout)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Controls & Realtime Inference Inspector -->
+          <div class="lg:col-span-4 space-y-6">
+            <!-- Algorithm Selector -->
+            <div class="bg-slate-950/70 p-4 rounded-xl border border-slate-800">
+              <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 font-mono">Classifier Model</label>
+              <select id="model-selector" onchange="changeModelType(this.value)" class="w-full bg-slate-900 border border-slate-700 text-white text-sm rounded-lg px-3 py-2 outline-none focus:border-indigo-500">
+                <option value="linear">Logistic Regression (Linear Hyperplane)</option>
+                <option value="tree">Decision Tree (Orthogonal Axis Split)</option>
+                <option value="svm">Support Vector Machine (Margin Boundary)</option>
+              </select>
+            </div>
+
+            <!-- Sliders for Decision Boundary Parameters -->
+            <div class="bg-slate-950/70 p-4 rounded-xl border border-slate-800 space-y-4">
+              <div class="flex justify-between items-center text-xs">
+                <span class="text-slate-300 font-medium">Boundary Slope / Weight (w₁)</span>
+                <span id="val-slope" class="font-mono text-indigo-400 font-bold">-1.20</span>
+              </div>
+              <input type="range" id="slider-slope" min="-300" max="300" value="-120" oninput="updateBoundaryParams()" class="w-full">
+
+              <div class="flex justify-between items-center text-xs">
+                <span class="text-slate-300 font-medium">Boundary Bias / Threshold (b)</span>
+                <span id="val-bias" class="font-mono text-indigo-400 font-bold">11.0</span>
+              </div>
+              <input type="range" id="slider-bias" min="0" max="250" value="110" oninput="updateBoundaryParams()" class="w-full">
+            </div>
+
+            <!-- Real-Time Inference Card for Active Probe -->
+            <div class="bg-slate-950/70 p-4 rounded-xl border border-slate-800" id="inference-card">
+              <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider font-mono mb-2">Live Inference Probe</div>
+              <div class="text-sm text-slate-300 mb-2">
+                Inspecting: <span id="probe-features" class="font-mono text-indigo-300 font-semibold">Ear: 7.2 | Snout: 3.5cm</span>
+              </div>
+
+              <!-- Probability Bar -->
+              <div class="space-y-1.5 mt-3">
+                <div class="flex justify-between text-xs font-semibold">
+                  <span class="text-pink-400">Cat Probability: <span id="prob-cat" class="font-mono">87%</span></span>
+                  <span class="text-blue-400">Dog: <span id="prob-dog" class="font-mono">13%</span></span>
+                </div>
+                <div class="w-full h-3 bg-slate-800 rounded-full overflow-hidden flex">
+                  <div id="prob-bar-cat" class="h-full bg-pink-500 transition-all duration-200" style="width: 87%;"></div>
+                  <div id="prob-bar-dog" class="h-full bg-blue-500 transition-all duration-200" style="width: 13%;"></div>
+                </div>
+              </div>
+
+              <div class="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between">
+                <span class="text-xs text-slate-400">Final Verdict:</span>
+                <span id="probe-verdict" class="px-2.5 py-1 rounded-md text-xs font-bold bg-pink-500/20 text-pink-300 border border-pink-500/30">
+                  🐱 Predicted Cat
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-12">
+        <h3 class="text-xl font-bold text-white mb-4">Core Classification Algorithms at a Glance</h3>
+        <div class="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/60 shadow-lg">
+          <table class="w-full text-left text-sm text-slate-300">
+            <thead class="bg-slate-950 text-xs font-mono uppercase tracking-wider text-slate-400 border-b border-slate-800">
+              <tr>
+                <th class="py-3.5 px-4 font-semibold">Algorithm</th>
+                <th class="py-3.5 px-4 font-semibold">Primary Strengths</th>
+                <th class="py-3.5 px-4 font-semibold">Common Use Cases</th>
+                <th class="py-3.5 px-4 font-semibold">Cat/Dog Behavior</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/60">
+              <tr class="hover:bg-slate-800/40 transition">
+                <td class="py-3 px-4 font-bold text-indigo-400">Logistic Regression</td>
+                <td class="py-3 px-4">Fast, simple, gives smooth calibrated probabilistic outputs.</td>
+                <td class="py-3 px-4 text-slate-400">Credit scoring, medical risk assessment.</td>
+                <td class="py-3 px-4 text-xs font-mono text-slate-400">Draws a straight diagonal hyperplane.</td>
+              </tr>
+              <tr class="hover:bg-slate-800/40 transition">
+                <td class="py-3 px-4 font-bold text-indigo-400">Decision Trees & Random Forests</td>
+                <td class="py-3 px-4">Naturally captures non-linear splits; handles outliers and missing values robustly.</td>
+                <td class="py-3 px-4 text-slate-400">Customer churn modeling, risk analysis.</td>
+                <td class="py-3 px-4 text-xs font-mono text-slate-400">"If ear &gt; 6 AND snout &lt; 5 =&gt; Cat"</td>
+              </tr>
+              <tr class="hover:bg-slate-800/40 transition">
+                <td class="py-3 px-4 font-bold text-indigo-400">Support Vector Machines (SVM)</td>
+                <td class="py-3 px-4">Maximizes margin between classes; kernel trick solves high-dimensional complexity.</td>
+                <td class="py-3 px-4 text-slate-400">Image classification, bio-informatics.</td>
+                <td class="py-3 px-4 text-xs font-mono text-slate-400">Finds widest "street" separating boundary pets.</td>
+              </tr>
+              <tr class="hover:bg-slate-800/40 transition">
+                <td class="py-3 px-4 font-bold text-indigo-400">Naive Bayes</td>
+                <td class="py-3 px-4">Blazingly fast, lightweight, excels under conditional independence assumptions.</td>
+                <td class="py-3 px-4 text-slate-400">Spam filtering, sentiment analysis.</td>
+                <td class="py-3 px-4 text-xs font-mono text-slate-400">Calculates prior P(Cat) × P(Ears|Cat).</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="section-3" class="scroll-mt-24">
+      <div class="flex items-center space-x-3 mb-4">
+        <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 font-mono font-bold text-sm border border-blue-500/30">03</span>
+        <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">Major Applications of Machine Learning</h2>
+      </div>
+      <p class="text-slate-300 text-base leading-relaxed mb-8 max-w-3xl">
+        The same mathematical foundations powering classification of companion animals govern multi-billion dollar production systems worldwide. Click any vertical below to see its deployment:
+      </p>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Healthcare -->
+        <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-pink-500/50 hover:bg-slate-900/80 transition group">
+          <div class="text-3xl mb-3">🩺</div>
+          <h3 class="text-lg font-bold text-white group-hover:text-pink-400 transition mb-2">Healthcare</h3>
+          <p class="text-slate-400 text-sm leading-relaxed mb-3">
+            Detecting malignant tumors in CT/X-Ray imaging, predicting 30-day patient re-admission risks, and accelerating molecular drug discovery.
+          </p>
+          <div class="text-xs font-mono text-pink-400 bg-pink-950/40 px-2 py-1 rounded border border-pink-900/50 inline-block">
+            Vision &amp; Survival Analysis
+          </div>
+        </div>
+
+        <!-- Finance -->
+        <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-indigo-500/50 hover:bg-slate-900/80 transition group">
+          <div class="text-3xl mb-3">💳</div>
+          <h3 class="text-lg font-bold text-white group-hover:text-indigo-400 transition mb-2">Finance</h3>
+          <p class="text-slate-400 text-sm leading-relaxed mb-3">
+            Sub-millisecond credit card fraud classification, algorithmic high-frequency trading, and automated risk-adjusted loan underwriting.
+          </p>
+          <div class="text-xs font-mono text-indigo-400 bg-indigo-950/40 px-2 py-1 rounded border border-indigo-900/50 inline-block">
+            Anomaly Detection &amp; Regressors
+          </div>
+        </div>
+
+        <!-- E-Commerce -->
+        <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-blue-500/50 hover:bg-slate-900/80 transition group">
+          <div class="text-3xl mb-3">🛍️</div>
+          <h3 class="text-lg font-bold text-white group-hover:text-blue-400 transition mb-2">E-Commerce &amp; Media</h3>
+          <p class="text-slate-400 text-sm leading-relaxed mb-3">
+            Personalization recommendation engines (Netflix movie matrices, Amazon carousel shopping feeds), and dynamic price optimization.
+          </p>
+          <div class="text-xs font-mono text-blue-400 bg-blue-950/40 px-2 py-1 rounded border border-blue-900/50 inline-block">
+            Collaborative Filtering &amp; Matrix Factorization
+          </div>
+        </div>
+
+        <!-- Cybersecurity -->
+        <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-emerald-500/50 hover:bg-slate-900/80 transition group">
+          <div class="text-3xl mb-3">🛡️</div>
+          <h3 class="text-lg font-bold text-white group-hover:text-emerald-400 transition mb-2">Cybersecurity</h3>
+          <p class="text-slate-400 text-sm leading-relaxed mb-3">
+            Real-time phishing website prevention, botnet intrusion detection, and zero-day threat behavior profiling.
+          </p>
+          <div class="text-xs font-mono text-emerald-400 bg-emerald-950/40 px-2 py-1 rounded border border-emerald-900/50 inline-block">
+            Semi-Supervised Anomaly Profiling
+          </div>
+        </div>
+
+        <!-- Automotive -->
+        <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-amber-500/50 hover:bg-slate-900/80 transition group">
+          <div class="text-3xl mb-3">🚗</div>
+          <h3 class="text-lg font-bold text-white group-hover:text-amber-400 transition mb-2">Automotive</h3>
+          <p class="text-slate-400 text-sm leading-relaxed mb-3">
+            Autonomous self-driving vehicle perception using sensor fusion (LiDAR point clouds, surround cameras, and radar) for pedestrian tracking.
+          </p>
+          <div class="text-xs font-mono text-amber-400 bg-amber-950/40 px-2 py-1 rounded border border-amber-900/50 inline-block">
+            Deep CNNs + Kalman Filtering
+          </div>
+        </div>
+
+        <!-- Smart Agriculture / Bio -->
+        <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-cyan-500/50 hover:bg-slate-900/80 transition group">
+          <div class="text-3xl mb-3">🌾</div>
+          <h3 class="text-lg font-bold text-white group-hover:text-cyan-400 transition mb-2">Agriculture &amp; Pets</h3>
+          <p class="text-slate-400 text-sm leading-relaxed mb-3">
+            Automated livestock health monitoring, crop weed identification through drone imagery, and biometric pet face recognition scanners.
+          </p>
+          <div class="text-xs font-mono text-cyan-400 bg-cyan-950/40 px-2 py-1 rounded border border-cyan-900/50 inline-block">
+            Edge Computer Vision
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="section-4" class="scroll-mt-24">
+      <div class="flex items-center space-x-3 mb-4">
+        <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-purple-500/20 text-purple-400 font-mono font-bold text-sm border border-purple-500/30">04</span>
+        <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">What is Deep Learning (DL)?</h2>
+      </div>
+      <p class="text-slate-300 text-base leading-relaxed mb-8 max-w-3xl">
+        Deep Learning is a specialized subfield of Machine Learning powered by <strong class="text-white">Artificial Neural Networks (ANNs)</strong> with many hidden layers. The crucial leap is eliminating manual feature engineering.
+      </p>
+
+      <!-- Traditional ML vs DL Interactive Toggle Bar -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+        <div class="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 relative">
+          <div class="inline-flex items-center space-x-2 text-xs font-mono uppercase text-amber-400 font-semibold mb-3">
+            <span>Traditional Machine Learning</span>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2">Requires Manual Feature Engineering</h3>
+          <p class="text-slate-400 text-sm leading-relaxed mb-4">
+            A human domain expert must manually calculate math formulas: "Measure ear triangle ratio", "Measure color histogram", "Count edge orientations". If you miss a crucial feature, the model fails.
+          </p>
+          <div class="p-3 bg-slate-950 rounded-lg border border-slate-800 text-xs font-mono text-slate-300 flex items-center space-x-2 overflow-x-auto">
+            <span>[Raw Image]</span>
+            <span class="text-amber-400">➔ 👨‍💻 Manual Features ➔</span>
+            <span>[Classifier (SVM)]</span>
+            <span class="text-emerald-400">➔ Cat/Dog</span>
+          </div>
+        </div>
+
+        <div class="p-6 rounded-2xl bg-slate-900/80 border border-indigo-500/30 glow-brand relative">
+          <div class="inline-flex items-center space-x-2 text-xs font-mono uppercase text-indigo-400 font-semibold mb-3">
+            <span>Deep Learning (Hierarchical)</span>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2">End-to-End Hierarchical Representation</h3>
+          <p class="text-slate-400 text-sm leading-relaxed mb-4">
+            Deep networks consume raw pixels directly. Early layers discover simple edges; intermediate layers combine them into textures and contours; deep layers assemble eyes, snouts, and fur patterns autonomously.
+          </p>
+          <div class="p-3 bg-slate-950 rounded-lg border border-slate-800 text-xs font-mono text-slate-300 flex items-center space-x-2 overflow-x-auto">
+            <span>[Raw Pixels]</span>
+            <span class="text-indigo-400">➔ 🧠 Deep Neural Layers ➔</span>
+            <span class="text-emerald-400">➔ Cat/Dog</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="rounded-2xl bg-slate-900 border border-slate-800 p-6 sm:p-8">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div>
+            <span class="text-xs font-mono font-semibold tracking-wider text-pink-400 uppercase">Interactive Network Inspector</span>
+            <h3 class="text-xl font-bold text-white mt-1">Hierarchical Convolutional Layer Activation</h3>
+            <p class="text-slate-400 text-xs sm:text-sm mt-0.5">Toggle input subject to trace how internal representations mutate from edges to animal semantics:</p>
+          </div>
+          <div class="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800">
+            <button onclick="setCNNSubject('cat')" id="btn-cnn-cat" class="px-3.5 py-1.5 rounded-lg bg-pink-600 text-white font-semibold text-xs transition">
+              🐱 Cat Input
+            </button>
+            <button onclick="setCNNSubject('dog')" id="btn-cnn-dog" class="px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-white font-semibold text-xs transition">
+              🐶 Dog Input
+            </button>
+          </div>
+        </div>
+
+        <!-- 4-Stage Visual Representation Pipeline -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Stage 1 -->
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 flex flex-col items-center text-center">
+            <span class="text-[11px] font-mono uppercase text-slate-400 font-semibold mb-2">Stage 0: Input Image</span>
+            <div id="cnn-view-input" class="w-32 h-32 rounded-lg bg-slate-900 border border-slate-700 flex items-center justify-center text-5xl mb-3 shadow-inner">
+              🐱
+            </div>
+            <h4 class="text-sm font-bold text-slate-200">Raw Pixel Matrix</h4>
+            <p class="text-xs text-slate-400 mt-1">RGB 224x224x3 grid of raw intensity floats (0.0 to 1.0).</p>
+          </div>
+
+          <!-- Stage 2 -->
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 flex flex-col items-center text-center">
+            <span class="text-[11px] font-mono uppercase text-slate-400 font-semibold mb-2">Stage 1: Conv Layers 1-2</span>
+            <div id="cnn-view-edges" class="w-32 h-32 rounded-lg bg-slate-900 border border-slate-700 p-2 flex flex-wrap gap-1 items-center justify-center mb-3 shadow-inner">
+              <!-- Edge filters simulated with CSS lines -->
+              <div class="w-12 h-12 bg-slate-800 rounded border border-slate-600 flex items-center justify-center text-slate-400 font-mono text-[9px] rotate-45">/ / /</div>
+              <div class="w-12 h-12 bg-slate-800 rounded border border-slate-600 flex items-center justify-center text-slate-400 font-mono text-[9px] -rotate-45">\ \ \</div>
+              <div class="w-12 h-12 bg-slate-800 rounded border border-slate-600 flex items-center justify-center text-slate-400 font-mono text-[9px]">| | |</div>
+              <div class="w-12 h-12 bg-slate-800 rounded border border-slate-600 flex items-center justify-center text-slate-400 font-mono text-[9px]">— — —</div>
+            </div>
+            <h4 class="text-sm font-bold text-indigo-400">Low-Level Features</h4>
+            <p class="text-xs text-slate-400 mt-1">Gabor-like filters detect gradient edges, lines, and color contrasts.</p>
+          </div>
+
+          <!-- Stage 3 -->
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 flex flex-col items-center text-center">
+            <span class="text-[11px] font-mono uppercase text-slate-400 font-semibold mb-2">Stage 2: Conv Layers 3-5</span>
+            <div id="cnn-view-parts" class="w-32 h-32 rounded-lg bg-slate-900 border border-slate-700 flex flex-col items-center justify-center mb-3 shadow-inner space-y-1">
+              <span id="cnn-part-1" class="text-xs font-mono px-2 py-0.5 rounded bg-pink-900/60 text-pink-300 border border-pink-700">▲ Pointy Ear</span>
+              <span id="cnn-part-2" class="text-xs font-mono px-2 py-0.5 rounded bg-pink-900/60 text-pink-300 border border-pink-700">~ Whisker Arc</span>
+              <span id="cnn-part-3" class="text-xs font-mono px-2 py-0.5 rounded bg-pink-900/60 text-pink-300 border border-pink-700">● Slit Pupil</span>
+            </div>
+            <h4 class="text-sm font-bold text-purple-400">Mid-Level Motifs</h4>
+            <p class="text-xs text-slate-400 mt-1">Combinations form textures, eye rings, ear tips, and fur patches.</p>
+          </div>
+
+          <!-- Stage 4 -->
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 flex flex-col items-center text-center">
+            <span class="text-[11px] font-mono uppercase text-slate-400 font-semibold mb-2">Stage 3: Dense + Softmax</span>
+            <div id="cnn-view-output" class="w-32 h-32 rounded-lg bg-slate-900 border border-slate-700 flex flex-col items-center justify-center mb-3 shadow-inner p-2">
+              <div class="w-full flex justify-between text-xs mb-1 font-mono">
+                <span class="text-pink-400">Cat</span>
+                <span id="cnn-prob-cat" class="font-bold text-pink-300">98.2%</span>
+              </div>
+              <div class="w-full h-2 bg-slate-800 rounded-full mb-2 overflow-hidden">
+                <div id="cnn-bar-cat" class="h-full bg-pink-500" style="width: 98%;"></div>
+              </div>
+              <div class="w-full flex justify-between text-xs mb-1 font-mono">
+                <span class="text-blue-400">Dog</span>
+                <span id="cnn-prob-dog" class="font-bold text-blue-300">1.8%</span>
+              </div>
+              <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                <div id="cnn-bar-dog" class="h-full bg-blue-500" style="width: 2%;"></div>
+              </div>
+            </div>
+            <h4 class="text-sm font-bold text-emerald-400">High-Level Semantics</h4>
+            <p class="text-xs text-slate-400 mt-1">Global average pooling collapses spatial maps into categorical probabilities.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="p-5 rounded-xl bg-slate-900 border border-slate-800">
+          <div class="text-indigo-400 font-mono text-xs font-semibold uppercase mb-1">Architecture 1</div>
+          <h4 class="text-white font-bold text-base mb-2">CNNs (Convolutional)</h4>
+          <p class="text-slate-400 text-sm leading-relaxed">
+            Preserves 2D spatial arrangement via translation-invariant sliding kernels. Standard for vision, medical imaging, and animal classification.
+          </p>
+        </div>
+
+        <div class="p-5 rounded-xl bg-slate-900 border border-slate-800">
+          <div class="text-purple-400 font-mono text-xs font-semibold uppercase mb-1">Architecture 2</div>
+          <h4 class="text-white font-bold text-base mb-2">RNNs &amp; LSTMs</h4>
+          <p class="text-slate-400 text-sm leading-relaxed">
+            Maintains internal memory feedback loops for sequential temporal streams (stock prices, speech acoustics, time-series telemetry).
+          </p>
+        </div>
+
+        <div class="p-5 rounded-xl bg-slate-900 border border-slate-800">
+          <div class="text-pink-400 font-mono text-xs font-semibold uppercase mb-1">Architecture 3</div>
+          <h4 class="text-white font-bold text-base mb-2">Transformers</h4>
+          <p class="text-slate-400 text-sm leading-relaxed">
+            Replaces recurrence with parallel Self-Attention mechanisms, computing pairwise relationships across tokens simultaneously. Powers modern LLMs &amp; ViTs.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="section-5" class="scroll-mt-24">
+      <div class="flex items-center space-x-3 mb-4">
+        <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 font-mono font-bold text-sm border border-emerald-500/30">05</span>
+        <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">Connections to Generative AI</h2>
+      </div>
+      <p class="text-slate-300 text-base leading-relaxed mb-8 max-w-3xl">
+        While traditional Machine Learning and Deep Learning are primarily <strong class="text-white">discriminative</strong> (predicting labels or boundaries), <strong class="text-emerald-400 font-semibold">Generative AI (GenAI)</strong> models learn the underlying probability distribution to synthesize novel, high-fidelity samples.
+      </p>
+
+      <!-- AI Hierarchy Visual Tree -->
+      <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 mb-10 overflow-x-auto">
+        <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider font-mono mb-4">Structural Hierarchy of AI Disciplines</h3>
+        <div class="min-w-[600px] font-mono text-sm space-y-2 text-slate-300 bg-slate-950 p-5 rounded-xl border border-slate-800">
+          <div class="text-slate-400">Artificial Intelligence <span class="text-xs text-slate-500">(Broadest scope: Machines simulating cognitive behavior)</span></div>
+          <div class="pl-6 text-indigo-400">└── Machine Learning <span class="text-xs text-slate-500">(Pattern recognition from empirical training data)</span></div>
+          <div class="pl-12 text-purple-400">└── Deep Learning <span class="text-xs text-slate-500">(Multi-layered Artificial Neural Networks)</span></div>
+          <div class="pl-20 text-emerald-400 font-bold bg-emerald-950/40 p-1.5 rounded inline-block border border-emerald-800/40">
+            └── Generative AI <span class="text-xs text-slate-300 font-normal">(Deep networks trained to generate brand-new data tokens/pixels)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="rounded-2xl bg-slate-900 border border-slate-800 p-6 sm:p-8 mb-10 glow-brand">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div>
+            <span class="text-xs font-mono font-semibold tracking-wider text-emerald-400 uppercase">Interactive GenAI Simulator</span>
+            <h3 class="text-xl font-bold text-white mt-1">Diffusion Models: Systematic Denoising</h3>
+            <p class="text-slate-400 text-xs sm:text-sm mt-0.5">Drag the slider or click steps to watch gaussian noise transform into a photorealistic pet:</p>
+          </div>
+          <div class="flex items-center space-x-2">
+            <button onclick="setGenSubject('cat')" id="btn-gen-cat" class="px-3 py-1.5 rounded-lg bg-pink-600 text-white font-medium text-xs shadow transition">
+              Generate Cat 🐱
+            </button>
+            <button onclick="setGenSubject('dog')" id="btn-gen-dog" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-xs border border-slate-700 transition">
+              Generate Dog 🐶
+            </button>
+          </div>
+        </div>
+
+        <!-- Visual Canvas Display of Noise -> Pet -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+          <div class="md:col-span-5 flex flex-col items-center">
+            <div class="relative w-48 h-48 rounded-xl border-2 border-indigo-500/40 overflow-hidden shadow-2xl bg-slate-950 flex items-center justify-center">
+              <canvas id="diffusionCanvas" width="192" height="192" class="w-full h-full object-cover"></canvas>
+              <div id="diffusion-badge" class="absolute bottom-2 left-2 bg-slate-950/80 text-[10px] font-mono px-2 py-0.5 rounded border border-slate-700 text-slate-300">
+                Step t = 50 (Pure Gaussian Noise)
+              </div>
+            </div>
+          </div>
+
+          <div class="md:col-span-7 space-y-4">
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-slate-300 font-semibold font-mono">Denoising Timestep (t):</span>
+              <span id="denoise-step-label" class="font-mono text-emerald-400 font-bold">t = 50 (Noise)</span>
+            </div>
+            <input type="range" id="diffusion-slider" min="0" max="5" value="0" oninput="updateDiffusionSlider(this.value)" class="w-full">
+            
+            <div class="grid grid-cols-6 text-center text-[10px] font-mono text-slate-400 pt-1">
+              <span>t=50</span>
+              <span>t=40</span>
+              <span>t=30</span>
+              <span>t=20</span>
+              <span>t=10</span>
+              <span class="text-emerald-400 font-bold">t=0 (Clean)</span>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 leading-relaxed">
+              <span class="font-semibold text-white block mb-1">What's happening behind the math?</span>
+              A U-Net architecture conditioned on text embeddings (e.g. <em>"a fluffy ginger cat portrait"</em>) predicts the exact noise vector present at step <span class="font-mono text-indigo-300">t</span> and subtracts it, uncovering sharp semantic features step-by-step.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <!-- LLMs -->
+        <div class="p-6 rounded-xl bg-slate-900 border border-slate-800">
+          <div class="flex items-center space-x-3 mb-3">
+            <span class="text-2xl">💬</span>
+            <h4 class="text-white font-bold text-base">Large Language Models (LLMs)</h4>
+          </div>
+          <p class="text-slate-400 text-sm leading-relaxed mb-3">
+            Massive autoregressive Transformer networks trained on billions of text tokens to predict sequential continuation, write code, reason, and translate (e.g., Gemini, GPT-4, Claude).
+          </p>
+          <span class="text-xs font-mono text-indigo-400 bg-indigo-950/60 px-2 py-0.5 rounded border border-indigo-800/40">Transformer Attention</span>
+        </div>
+
+        <!-- Diffusion Models -->
+        <div class="p-6 rounded-xl bg-slate-900 border border-slate-800">
+          <div class="flex items-center space-x-3 mb-3">
+            <span class="text-2xl">🎨</span>
+            <h4 class="text-white font-bold text-base">Diffusion Models</h4>
+          </div>
+          <p class="text-slate-400 text-sm leading-relaxed mb-3">
+            Generative systems that synthesize photorealistic images and videos by systematically inverting a Langevin noise degradation process (e.g., Stable Diffusion, Midjourney, Sora).
+          </p>
+          <span class="text-xs font-mono text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800/40">Iterative Denoising Score</span>
+        </div>
+
+        <!-- GANs -->
+        <div class="p-6 rounded-xl bg-slate-900 border border-slate-800">
+          <div class="flex items-center space-x-3 mb-3">
+            <span class="text-2xl">⚔️</span>
+            <h4 class="text-white font-bold text-base">Generative Adversarial Networks (GANs)</h4>
+          </div>
+          <p class="text-slate-400 text-sm leading-relaxed mb-3">
+            Dual-network min-max game: a <strong>Generator</strong> crafts synthetic counterfeits while a <strong>Discriminator</strong> attempts to spot fakes. Widely used for face generation and style transfers.
+          </p>
+          <span class="text-xs font-mono text-pink-400 bg-pink-950/60 px-2 py-0.5 rounded border border-pink-800/40">Min-Max Nash Equilibrium</span>
+        </div>
+
+        <!-- VAEs -->
+        <div class="p-6 rounded-xl bg-slate-900 border border-slate-800">
+          <div class="flex items-center space-x-3 mb-3">
+            <span class="text-2xl">🧬</span>
+            <h4 class="text-white font-bold text-base">Variational Autoencoders (VAEs)</h4>
+          </div>
+          <p class="text-slate-400 text-sm leading-relaxed mb-3">
+            Probabilistic neural networks that map inputs into a smooth, continuous latent bottleneck space with a Gaussian prior, enabling continuous interpolation and molecule generation.
+          </p>
+          <span class="text-xs font-mono text-purple-400 bg-purple-950/60 px-2 py-0.5 rounded border border-purple-800/40">Latent KL-Divergence</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="p-8 rounded-2xl bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <span class="text-xs font-mono font-semibold tracking-wider text-indigo-400 uppercase">Knowledge Check</span>
+          <h3 class="text-2xl font-bold text-white mt-1">Test Your Understanding</h3>
+        </div>
+        <div id="quiz-score-badge" class="px-3 py-1 rounded-full bg-slate-800 text-slate-300 font-mono text-xs border border-slate-700">
+          Score: 0 / 3
+        </div>
+      </div>
+
+      <div class="space-y-6" id="quiz-container">
+        <!-- Question 1 -->
+        <div class="p-5 rounded-xl bg-slate-950 border border-slate-800" id="q1-card">
+          <p class="text-sm font-semibold text-white mb-3">
+            1. You have 10,000 photos of cats and dogs with ZERO labels, and you ask an algorithm to find natural clusters based on visual silhouettes. Which paradigm are you using?
+          </p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+            <button onclick="answerQuiz(1, 0, false)" class="q-opt p-3 rounded-lg bg-slate-900 border border-slate-800 text-left hover:border-slate-700 text-slate-300 transition">A) Supervised Learning</button>
+            <button onclick="answerQuiz(1, 1, true)" class="q-opt p-3 rounded-lg bg-slate-900 border border-slate-800 text-left hover:border-slate-700 text-slate-300 transition">B) Unsupervised Learning</button>
+            <button onclick="answerQuiz(1, 2, false)" class="q-opt p-3 rounded-lg bg-slate-900 border border-slate-800 text-left hover:border-slate-700 text-slate-300 transition">C) Reinforcement Learning</button>
+            <button onclick="answerQuiz(1, 3, false)" class="q-opt p-3 rounded-lg bg-slate-900 border border-slate-800 text-left hover:border-slate-700 text-slate-300 transition">D) Diffusion Denoising</button>
+          </div>
+          <div id="q1-feedback" class="mt-3 text-xs hidden"></div>
+        </div>
+
+        <!-- Question 2 -->
+        <div class="p-5 rounded-xl bg-slate-950 border border-slate-800" id="q2-card">
+          <p class="text-sm font-semibold text-white mb-3">
+            2. What is the fundamental difference between Traditional Machine Learning and Deep Learning in image classification?
+          </p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+            <button onclick="answerQuiz(2, 0, false)" class="q-opt p-3 rounded-lg bg-slate-900 border border-slate-800 text-left hover:border-slate-700 text-slate-300 transition">A) Traditional ML uses GPUs, while DL runs only on CPUs.</button>
+            <button onclick="answerQuiz(2, 1, false)" class="q-opt p-3 rounded-lg bg-slate-900 border border-slate-800 text-left hover:border-slate-700 text-slate-300 transition">B) Traditional ML can only predict continuous numbers, not categories.</button>
+            <button onclick="answerQuiz(2, 2, true)" class="q-opt p-3 rounded-lg bg-slate-900 border border-slate-800 text-left hover:border-slate-700 text-slate-300 transition">C) Deep Learning extracts hierarchical representations directly from raw pixels, avoiding manual feature engineering.</button>
+            <button onclick="answerQuiz(2, 3, false)" class="q-opt p-3 rounded-lg bg-slate-900 border border-slate-800 text-left hover:border-slate-700 text-slate-300 transition">D) Traditional ML requires billions of images, while DL needs only 5 images.</button>
+          </div>
+          <div id="q2-feedback" class="mt-3 text-xs hidden"></div>
+        </div>
+
+        <!-- Question 3 -->
+        <div class="p-5 rounded-xl bg-slate-950 border border-slate-800" id="q3-card">
+          <p class="text-sm font-semibold text-white mb-3">
+            3. How does Generative AI (GenAI) differ from Discriminative AI?
+          </p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+            <button onclick="answerQuiz(3, 0, true)" class="q-opt p-3 rounded-lg bg-slate-900 border border-slate-800 text-left hover:border-slate-700 text-slate-300 transition">A) Discriminative models predict labels given input; GenAI synthesizes brand new data matching the distribution.</button>
+            <button onclick="answerQuiz(3, 1, false)" class="q-opt p-3 rounded-lg bg-slate-900 border border-slate-800 text-left hover:border-slate-700 text-slate-300 transition">B) GenAI does not use neural networks.</button>
+            <button onclick="answerQuiz(3, 2, false)" class="q-opt p-3 rounded-lg bg-slate-900 border border-slate-800 text-left hover:border-slate-700 text-slate-300 transition">C) Discriminative models are only used in robotics, never software.</button>
+            <button onclick="answerQuiz(3, 3, false)" class="q-opt p-3 rounded-lg bg-slate-900 border border-slate-800 text-left hover:border-slate-700 text-slate-300 transition">D) GenAI can only generate text, never images or videos.</button>
+          </div>
+          <div id="q3-feedback" class="mt-3 text-xs hidden"></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="border-t border-slate-900 bg-slate-950/80 py-12 text-slate-500 text-xs">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center space-x-2">
+        <span class="text-base">🐾</span>
+        <span class="text-slate-400 font-medium">Interactive ML/DL Laboratory</span>
+        <span>•</span>
+        <span>Single-Page Modular Architecture</span>
+      </div>
+      <div>
+        Built with Tailwind CSS, HTML5 Canvas, and Web Audio Synthesizer.
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    /* ========================================================
+       APPLICATION STATE & AUDIO SYNTHESIZER
+       ======================================================== */
+    let audioEnabled = false;
+    let synth = null;
+
+    function initAudio() {
+      if (!synth && window.Tone) {
+        try {
+          synth = new Tone.PolySynth(Tone.Synth, {
+            oscillator: { type: "triangle" },
+            envelope: { attack: 0.005, decay: 0.1, sustain: 0, release: 0.1 }
+          }).toDestination();
+          synth.volume.value = -12;
+        } catch(e) {
+          console.log("Audio not supported or blocked");
+        }
+      }
+    }
+
+    function playSound(type) {
+      if (!audioEnabled || !synth) return;
+      try {
+        if (Tone.context.state !== 'running') {
+          Tone.start();
+        }
+        if (type === 'click') {
+          synth.triggerAttackRelease("C5", "32n");
+        } else if (type === 'cat') {
+          synth.triggerAttackRelease("E5", "16n");
+        } else if (type === 'dog') {
+          synth.triggerAttackRelease("A3", "16n");
+        } else if (type === 'correct') {
+          synth.triggerAttackRelease(["E5", "G5", "B5"], "16n");
+        } else if (type === 'wrong') {
+          synth.triggerAttackRelease(["C3", "C#3"], "16n");
+        }
+      } catch (err) {}
+    }
+
+    document.getElementById('sound-toggle-btn').addEventListener('click', async () => {
+      audioEnabled = !audioEnabled;
+      if (audioEnabled) {
+        await Tone.start();
+        initAudio();
+        document.getElementById('sound-icon').textContent = '🔊';
+        document.getElementById('sound-label').textContent = 'Audio: On';
+        playSound('correct');
+      } else {
+        document.getElementById('sound-icon').textContent = '🔈';
+        document.getElementById('sound-label').textContent = 'Audio: Off';
+      }
+    });
+
+    /* Scroll progress bar */
+    window.addEventListener('scroll', () => {
+      const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+      const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      const scrolled = (winScroll / height) * 100;
+      document.getElementById('progress-bar').style.width = scrolled + '%';
+    });
+
+    /* ========================================================
+       SECTION 1: PARADIGM DATA & INTERACTIVITY
+       ======================================================== */
+    const paradigms = {
+      'supervised': {
+        title: 'Supervised Learning: Learning with Ground Truth Labels',
+        badge: 'Labeled Pairs (X, Y)',
+        desc: 'The model receives labeled training data where each input feature vector is paired with an exact known ground-truth outcome label.',
+        examples: 'Predicting house prices from size and location, spam vs. ham email classification, and cat vs. dog photo labeling.',
+        catDogAnalogy: '🐱 vs 🐶 Context: You feed the computer 50,000 photos. Every photo has an explicit badge attached: "CAT" or "DOG". The model compares its guess to the true badge and corrects internal weights until accuracy stabilizes.',
+        math: 'Minimizes Loss Function: L(y_true, f(x; θ))'
+      },
+      'unsupervised': {
+        title: 'Unsupervised Learning: Discovering Inherent Latent Structure',
+        badge: 'Unlabeled Data (X only)',
+        desc: 'The algorithm receives unlabeled data with no target answers. It seeks natural clusters, hidden geometric manifolds, or low-dimensional projections completely on its own.',
+        examples: 'Customer market segmentation, anomaly detection, genomic sequence grouping, dimensionality reduction (PCA/t-SNE).',
+        catDogAnalogy: '🐱 vs 🐶 Context: You give the computer 50,000 photos with NO labels at all. The algorithm clusters them into two distinct groups based on silhouette ratios. It doesn\'t know the word "Dog", but it knows Group A has floppy ears and Group B has sharp ears.',
+        math: 'Clustering Objective: min Σ || x_i - μ_c ||²'
+      },
+      'semi-supervised': {
+        title: 'Semi-Supervised Learning: Strategic Hybrid Scaling',
+        badge: 'Small Labeled + Massive Unlabeled',
+        desc: 'Combines a small volume of expensive, hand-curated labeled data with an abundant volume of inexpensive unlabeled samples to cut manual annotation costs while retaining high accuracy.',
+        examples: 'Medical radiology screening where board-certified radiologist annotations are scarce, or speech recognition across niche dialects.',
+        catDogAnalogy: '🐱 vs 🐶 Context: Labeling 100,000 animal photos takes 200 hours. Instead, human experts label just 500 photos. The algorithm learns anchor points from those 500 and uses consistency regularization to self-label the remaining 99,500.',
+        math: 'Objective: Loss_supervised + λ * Loss_unsupervised_consistency'
+      },
+      'reinforcement': {
+        title: 'Reinforcement Learning (RL): Trial, Error & Reward Maximization',
+        badge: 'Agent, Environment & Reward',
+        desc: 'An autonomous agent interacts with an environment through a sequence of actions. It receives scalar rewards for desirable outcomes and penalties for mistakes, learning an optimal policy.',
+        examples: 'Teaching AI to master chess and Go (AlphaZero), competitive video games, autonomous drone acrobatics, robotic quadruped walking.',
+        catDogAnalogy: '🐱 vs 🐶 Context: Think of training a live puppy! When the puppy sits on command, you give it a treat (+10 Reward). If it chews your shoe, you withhold the treat (-5 Penalty). Through repeated episodes, the puppy discovers actions that maximize treats.',
+        math: 'Bellman Optimality: Q*(s, a) = R(s,a) + γ max Q*(s\', a\')'
+      }
+    };
+
+    function setParadigm(type) {
+      playSound('click');
+      document.querySelectorAll('.paradigm-tab').forEach(b => {
+        b.classList.remove('border-indigo-500', 'bg-indigo-950/50', 'text-indigo-200');
+        b.classList.add('border-slate-800', 'bg-slate-900/50', 'text-slate-400');
+      });
+      const activeBtn = document.getElementById(`btn-paradigm-${type}`);
+      if (activeBtn) {
+        activeBtn.classList.remove('border-slate-800', 'bg-slate-900/50', 'text-slate-400');
+        activeBtn.classList.add('border-indigo-500', 'bg-indigo-950/50', 'text-indigo-200');
+      }
+
+      const p = paradigms[type];
+      const card = document.getElementById('paradigm-card');
+      card.innerHTML = `
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+          <h3 class="text-xl font-bold text-white">${p.title}</h3>
+          <span class="text-xs font-mono px-3 py-1 rounded-full bg-indigo-950 text-indigo-300 border border-indigo-700/50 inline-block self-start sm:self-auto">${p.badge}</span>
+        </div>
+        <p class="text-slate-300 text-sm sm:text-base leading-relaxed mb-4">${p.desc}</p>
+        
+        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 mb-4">
+          <span class="text-xs font-mono font-semibold uppercase text-pink-400 block mb-1">🐾 Cat & Dog Concrete Application</span>
+          <p class="text-sm text-slate-300 leading-relaxed">${p.catDogAnalogy}</p>
+        </div>
+
+        <div class="flex flex-col sm:flex-row justify-between text-xs text-slate-400 gap-2 border-t border-slate-800 pt-3">
+          <div><strong class="text-slate-200">Classic Real-world Examples:</strong> ${p.examples}</div>
+          <div class="font-mono text-indigo-400 bg-slate-950 px-2 py-0.5 rounded border border-slate-800">${p.math}</div>
+        </div>
+      `;
+    }
+
+    const canvas = document.getElementById('boundaryCanvas');
+    const ctx = canvas.getContext('2d');
+    let canvasW, canvasH;
+
+    // Feature space:
+    // X axis: Ear Pointiness (scale 0 to 10)
+    // Y axis: Snout Length (scale 0 to 15 cm)
+    let currentModel = 'linear';
+    let boundarySlope = -1.2;
+    let boundaryBias = 11.0;
+
+    // Probe point (unseen animal being inspected)
+    let probePoint = { ear: 7.2, snout: 3.5 };
+
+    // Training Dataset Points
+    let dataset = [
+      // Cats: Sharp ears (high X), short snout (low Y)
+      { ear: 7.5, snout: 2.8, type: 'cat' },
+      { ear: 8.2, snout: 3.1, type: 'cat' },
+      { ear: 6.9, snout: 2.3, type: 'cat' },
+      { ear: 8.9, snout: 3.8, type: 'cat' },
+      { ear: 7.1, snout: 4.1, type: 'cat' },
+      { ear: 9.3, snout: 2.0, type: 'cat' },
+      { ear: 6.2, snout: 3.5, type: 'cat' },
+      { ear: 8.0, snout: 4.8, type: 'cat' },
+      { ear: 6.5, snout: 2.9, type: 'cat' },
+
+      // Dogs: Floppy/moderate ears (low/mid X), longer snout (high Y)
+      { ear: 2.5, snout: 9.2, type: 'dog' },
+      { ear: 3.2, snout: 11.5, type: 'dog' },
+      { ear: 1.8, snout: 8.0, type: 'dog' },
+      { ear: 4.5, snout: 12.0, type: 'dog' },
+      { ear: 3.8, snout: 7.5, type: 'dog' },
+      { ear: 2.1, snout: 13.5, type: 'dog' },
+      { ear: 5.0, snout: 9.8, type: 'dog' },
+      { ear: 3.9, snout: 10.2, type: 'dog' },
+      { ear: 4.8, snout: 6.8, type: 'dog' }
+    ];
+
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * window.devicePixelRatio;
+      canvas.height = rect.height * window.devicePixelRatio;
+      canvasW = canvas.width;
+      canvasH = canvas.height;
+      drawDecisionBoundary();
+    }
+
+    function toCanvasX(ear) {
+      // ear 0..10 => margin 40 .. canvasW - 20
+      const margin = 45 * window.devicePixelRatio;
+      return margin + (ear / 10) * (canvasW - margin - 25 * window.devicePixelRatio);
+    }
+    function toCanvasY(snout) {
+      // snout 0..15 => canvasH - margin .. 25
+      const margin = 40 * window.devicePixelRatio;
+      return (canvasH - margin) - (snout / 15) * (canvasH - margin - 25 * window.devicePixelRatio);
+    }
+    function fromCanvasX(cx) {
+      const margin = 45 * window.devicePixelRatio;
+      const val = ((cx - margin) / (canvasW - margin - 25 * window.devicePixelRatio)) * 10;
+      return Math.max(0.2, Math.min(9.8, val));
+    }
+    function fromCanvasY(cy) {
+      const margin = 40 * window.devicePixelRatio;
+      const val = (((canvasH - margin) - cy) / (canvasH - margin - 25 * window.devicePixelRatio)) * 15;
+      return Math.max(0.5, Math.min(14.5, val));
+    }
+
+    function classify(ear, snout) {
+      if (currentModel === 'linear') {
+        // Equation: y = slope * x + bias
+        // Distance to line: snout - (slope * ear + bias)
+        const lineY = boundarySlope * ear + boundaryBias;
+        const diff = snout - lineY;
+        // Logistic sigmoid: P(Dog) = 1 / (1 + exp(-diff))
+        const pDog = 1 / (1 + Math.exp(-diff * 0.8));
+        return { pDog, pCat: 1 - pDog };
+      } else if (currentModel === 'tree') {
+        // Orthogonal splits:
+        // if ear > 5.8 AND snout < 6.0 => Cat
+        if (ear > 5.5 && snout < 5.8) {
+          return { pDog: 0.04, pCat: 0.96 };
+        } else if (ear < 4.5 || snout > 7.0) {
+          return { pDog: 0.95, pCat: 0.05 };
+        } else {
+          return { pDog: 0.55, pCat: 0.45 };
+        }
+      } else if (currentModel === 'svm') {
+        // Margin based classification with subtle curve
+        const boundaryVal = (ear * 1.1) - (snout * 0.7) - 1.5;
+        const pDog = 1 / (1 + Math.exp(-boundaryVal * 1.2));
+        return { pDog: 1 - pDog, pCat: pDog };
+      }
+    }
+
+    function drawDecisionBoundary() {
+      if (!ctx || !canvasW) return;
+      ctx.clearRect(0, 0, canvasW, canvasH);
+
+      const dpr = window.devicePixelRatio;
+
+      // 1. Draw Background Shading (Heatmap resolution 25x25)
+      const stepX = 24;
+      const stepY = 24;
+      for (let x = 0; x < canvasW; x += stepX) {
+        for (let y = 0; y < canvasH; y += stepY) {
+          const ear = fromCanvasX(x + stepX / 2);
+          const snout = fromCanvasY(y + stepY / 2);
+          const { pCat } = classify(ear, snout);
+
+          // Interpolate color: Cat (pink: 236, 72, 153) to Dog (blue: 59, 130, 246)
+          if (pCat > 0.5) {
+            const alpha = (pCat - 0.5) * 0.35;
+            ctx.fillStyle = `rgba(236, 72, 153, ${alpha})`;
+          } else {
+            const alpha = (0.5 - pCat) * 0.35;
+            ctx.fillStyle = `rgba(59, 130, 246, ${alpha})`;
+          }
+          ctx.fillRect(x, y, stepX, stepY);
+        }
+      }
+
+      // 2. Draw Axes
+      const originX = toCanvasX(0);
+      const originY = toCanvasY(0);
+
+      ctx.strokeStyle = '#475569';
+      ctx.lineWidth = 1.5 * dpr;
+      ctx.beginPath();
+      ctx.moveTo(originX, toCanvasY(15));
+      ctx.lineTo(originX, originY);
+      ctx.lineTo(toCanvasX(10), originY);
+      ctx.stroke();
+
+      // Axis Labels
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = `${10 * dpr}px JetBrains Mono`;
+      ctx.fillText('Ear Pointiness (1 to 10) ➔', toCanvasX(3.5), originY + 22 * dpr);
+      
+      ctx.save();
+      ctx.translate(originX - 25 * dpr, toCanvasY(8));
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText('Snout Length (cm) ➔', 0, 0);
+      ctx.restore();
+
+      // 3. Draw Decision Boundary Line
+      ctx.save();
+      if (currentModel === 'linear') {
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2.5 * dpr;
+        ctx.setLineDash([6 * dpr, 4 * dpr]);
+        ctx.beginPath();
+        const yStart = boundarySlope * 0 + boundaryBias;
+        const yEnd = boundarySlope * 10 + boundaryBias;
+        ctx.moveTo(toCanvasX(0), toCanvasY(yStart));
+        ctx.lineTo(toCanvasX(10), toCanvasY(yEnd));
+        ctx.stroke();
+      } else if (currentModel === 'tree') {
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2.5 * dpr;
+        ctx.setLineDash([5 * dpr, 4 * dpr]);
+        ctx.beginPath();
+        // Vertical split at ear = 5.5
+        ctx.moveTo(toCanvasX(5.5), toCanvasY(0));
+        ctx.lineTo(toCanvasX(5.5), toCanvasY(15));
+        // Horizontal split at snout = 5.8
+        ctx.moveTo(toCanvasX(5.5), toCanvasY(5.8));
+        ctx.lineTo(toCanvasX(10), toCanvasY(5.8));
+        ctx.stroke();
+      } else if (currentModel === 'svm') {
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3 * dpr;
+        ctx.beginPath();
+        for (let ear = 0; ear <= 10; ear += 0.2) {
+          const snout = ((ear * 1.1) - 1.5) / 0.7;
+          const cx = toCanvasX(ear);
+          const cy = toCanvasY(snout);
+          if (ear === 0) ctx.moveTo(cx, cy);
+          else ctx.lineTo(cx, cy);
+        }
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // 4. Draw Dataset Points
+      dataset.forEach(pt => {
+        const cx = toCanvasX(pt.ear);
+        const cy = toCanvasY(pt.snout);
+        ctx.beginPath();
+        ctx.arc(cx, cy, 6 * dpr, 0, Math.PI * 2);
+        if (pt.type === 'cat') {
+          ctx.fillStyle = '#ec4899';
+          ctx.strokeStyle = '#ffffff';
+        } else {
+          ctx.fillStyle = '#3b82f6';
+          ctx.strokeStyle = '#ffffff';
+        }
+        ctx.lineWidth = 1.5 * dpr;
+        ctx.fill();
+        ctx.stroke();
+
+        // Draw cute mini emoji symbol
+        ctx.font = `${9 * dpr}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(pt.type === 'cat' ? '🐱' : '🐶', cx, cy - 12 * dpr);
+      });
+
+      // 5. Draw Active Inspection Probe Point
+      if (probePoint) {
+        const px = toCanvasX(probePoint.ear);
+        const py = toCanvasY(probePoint.snout);
+
+        // Pulsing outer halo
+        ctx.beginPath();
+        ctx.arc(px, py, 14 * dpr, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+        ctx.lineWidth = 2 * dpr;
+        ctx.setLineDash([4 * dpr, 4 * dpr]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.beginPath();
+        ctx.arc(px, py, 7 * dpr, 0, Math.PI * 2);
+        ctx.fillStyle = '#f59e0b';
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2 * dpr;
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.font = `bold ${10 * dpr}px JetBrains Mono`;
+        ctx.fillStyle = '#f59e0b';
+        ctx.fillText('UNKNOWN PET ?', px, py - 18 * dpr);
+      }
+    }
+
+    function updateBoundaryParams() {
+      boundarySlope = parseFloat(document.getElementById('slider-slope').value) / 100;
+      boundaryBias = parseFloat(document.getElementById('slider-bias').value) / 10;
+      document.getElementById('val-slope').textContent = boundarySlope.toFixed(2);
+      document.getElementById('val-bias').textContent = boundaryBias.toFixed(1);
+      drawDecisionBoundary();
+      evaluateProbe();
+    }
+
+    function changeModelType(model) {
+      playSound('click');
+      currentModel = model;
+      const slopeSlider = document.getElementById('slider-slope');
+      const biasSlider = document.getElementById('slider-bias');
+      if (model !== 'linear') {
+        slopeSlider.disabled = true;
+        biasSlider.disabled = true;
+      } else {
+        slopeSlider.disabled = false;
+        biasSlider.disabled = false;
+      }
+      drawDecisionBoundary();
+      evaluateProbe();
+    }
+
+    function evaluateProbe() {
+      if (!probePoint) return;
+      const { pCat, pDog } = classify(probePoint.ear, probePoint.snout);
+      const catPct = Math.round(pCat * 100);
+      const dogPct = 100 - catPct;
+
+      document.getElementById('probe-features').textContent = `Ear: ${probePoint.ear.toFixed(1)} | Snout: ${probePoint.snout.toFixed(1)}cm`;
+      document.getElementById('prob-cat').textContent = `${catPct}%`;
+      document.getElementById('prob-dog').textContent = `${dogPct}%`;
+      document.getElementById('prob-bar-cat').style.width = `${catPct}%`;
+      document.getElementById('prob-bar-dog').style.width = `${dogPct}%`;
+
+      const verdictEl = document.getElementById('probe-verdict');
+      if (catPct >= 50) {
+        verdictEl.textContent = '🐱 Predicted Cat';
+        verdictEl.className = 'px-2.5 py-1 rounded-md text-xs font-bold bg-pink-500/20 text-pink-300 border border-pink-500/30';
+      } else {
+        verdictEl.textContent = '🐶 Predicted Dog';
+        verdictEl.className = 'px-2.5 py-1 rounded-md text-xs font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30';
+      }
+    }
+
+    // Canvas click interaction to position probe or drop sample
+    canvas.addEventListener('click', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const clickX = (e.clientX - rect.left) * window.devicePixelRatio;
+      const clickY = (e.clientY - rect.top) * window.devicePixelRatio;
+
+      probePoint = {
+        ear: fromCanvasX(clickX),
+        snout: fromCanvasY(clickY)
+      };
+
+      const result = classify(probePoint.ear, probePoint.snout);
+      playSound(result.pCat > 0.5 ? 'cat' : 'dog');
+      drawDecisionBoundary();
+      evaluateProbe();
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const hoverX = (e.clientX - rect.left) * window.devicePixelRatio;
+      const hoverY = (e.clientY - rect.top) * window.devicePixelRatio;
+      const earVal = fromCanvasX(hoverX).toFixed(1);
+      const snoutVal = fromCanvasY(hoverY).toFixed(1);
+      document.getElementById('canvas-coord').textContent = `Ear: ${earVal} | Snout: ${snoutVal}cm`;
+    });
+
+    function resetBoundaryPoints() {
+      playSound('click');
+      probePoint = { ear: 7.2, snout: 3.5 };
+      boundarySlope = -1.2;
+      boundaryBias = 11.0;
+      document.getElementById('slider-slope').value = -120;
+      document.getElementById('slider-bias').value = 110;
+      updateBoundaryParams();
+    }
+
+    function addRandomPet() {
+      playSound('click');
+      const isCat = Math.random() > 0.5;
+      const newPet = isCat
+        ? { ear: 6.0 + Math.random() * 3.5, snout: 2.0 + Math.random() * 3.5, type: 'cat' }
+        : { ear: 1.5 + Math.random() * 4.0, snout: 7.0 + Math.random() * 6.5, type: 'dog' };
+      dataset.push(newPet);
+      drawDecisionBoundary();
+    }
+
+    function setCNNSubject(subject) {
+      playSound(subject);
+      const btnCat = document.getElementById('btn-cnn-cat');
+      const btnDog = document.getElementById('btn-cnn-dog');
+      const viewInput = document.getElementById('cnn-view-input');
+      const part1 = document.getElementById('cnn-part-1');
+      const part2 = document.getElementById('cnn-part-2');
+      const part3 = document.getElementById('cnn-part-3');
+      const probCat = document.getElementById('cnn-prob-cat');
+      const probDog = document.getElementById('cnn-prob-dog');
+      const barCat = document.getElementById('cnn-bar-cat');
+      const barDog = document.getElementById('cnn-bar-dog');
+
+      if (subject === 'cat') {
+        btnCat.className = 'px-3.5 py-1.5 rounded-lg bg-pink-600 text-white font-semibold text-xs transition';
+        btnDog.className = 'px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-white font-semibold text-xs transition';
+        viewInput.textContent = '🐱';
+        part1.textContent = '▲ Sharp Ear Corner';
+        part2.textContent = '〰 Whisker Strands';
+        part3.textContent = '● Vertical Slit Pupil';
+        part1.className = 'text-xs font-mono px-2 py-0.5 rounded bg-pink-900/60 text-pink-300 border border-pink-700';
+        part2.className = 'text-xs font-mono px-2 py-0.5 rounded bg-pink-900/60 text-pink-300 border border-pink-700';
+        part3.className = 'text-xs font-mono px-2 py-0.5 rounded bg-pink-900/60 text-pink-300 border border-pink-700';
+
+        probCat.textContent = '98.2%';
+        probDog.textContent = '1.8%';
+        barCat.style.width = '98.2%';
+        barDog.style.width = '1.8%';
+      } else {
+        btnDog.className = 'px-3.5 py-1.5 rounded-lg bg-blue-600 text-white font-semibold text-xs transition';
+        btnCat.className = 'px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-white font-semibold text-xs transition';
+        viewInput.textContent = '🐶';
+        part1.textContent = '▼ Floppy Ear Fold';
+        part2.textContent = '▇ Elongated Snout Ridge';
+        part3.textContent = '👅 Hanging Tongue Texture';
+        part1.className = 'text-xs font-mono px-2 py-0.5 rounded bg-blue-900/60 text-blue-300 border border-blue-700';
+        part2.className = 'text-xs font-mono px-2 py-0.5 rounded bg-blue-900/60 text-blue-300 border border-blue-700';
+        part3.className = 'text-xs font-mono px-2 py-0.5 rounded bg-blue-900/60 text-blue-300 border border-blue-700';
+
+        probCat.textContent = '2.4%';
+        probDog.textContent = '97.6%';
+        barCat.style.width = '2.4%';
+        barDog.style.width = '97.6%';
+      }
+    }
+
+    const diffCanvas = document.getElementById('diffusionCanvas');
+    const diffCtx = diffCanvas.getContext('2d');
+    let genTarget = 'cat';
+    let currentDenoiseStep = 0; // 0 (pure noise) to 5 (clean)
+
+    function renderDiffusionFrame(step, animal) {
+      const w = diffCanvas.width;
+      const h = diffCanvas.height;
+      const imgData = diffCtx.createImageData(w, h);
+      const data = imgData.data;
+
+      // Noise factor: at step 0 = 1.0 (pure noise); at step 5 = 0.0 (pure signal)
+      const noiseLevel = 1.0 - (step / 5);
+
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          const idx = (y * w + x) * 4;
+          
+          // Generate clean synthetic base for cat or dog:
+          const dx = (x - w / 2) / (w / 2);
+          const dy = (y - h / 2) / (h / 2);
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          let rSignal = 30, gSignal = 30, bSignal = 40;
+
+          if (animal === 'cat') {
+            // Cat face structure: warm ginger/pink tones
+            if (dist < 0.65) {
+              rSignal = 220; gSignal = 130; bSignal = 80; // Ginger fur
+            }
+            // Pointy ears
+            if (dy < -0.3 && Math.abs(dx) > 0.25 && Math.abs(dx) < 0.65) {
+              rSignal = 240; gSignal = 110; bSignal = 70;
+            }
+            // Eyes
+            if (Math.abs(dy + 0.05) < 0.08 && Math.abs(dx - 0.2) < 0.08) {
+              rSignal = 50; gSignal = 220; bSignal = 90; // Green eyes
+            }
+            if (Math.abs(dy + 0.05) < 0.08 && Math.abs(dx + 0.2) < 0.08) {
+              rSignal = 50; gSignal = 220; bSignal = 90;
+            }
+          } else {
+            // Dog face structure: Golden retriever tones
+            if (dist < 0.72) {
+              rSignal = 190; gSignal = 150; bSignal = 100; // Tan fur
+            }
+            // Snout muzzle
+            if (dy > 0.05 && dy < 0.55 && Math.abs(dx) < 0.3) {
+              rSignal = 140; gSignal = 100; bSignal = 70;
+            }
+            // Black nose
+            if (Math.abs(dy - 0.22) < 0.09 && Math.abs(dx) < 0.12) {
+              rSignal = 20; gSignal = 20; bSignal = 20;
+            }
+          }
+
+          // Random Gaussian-like noise
+          const rNoise = Math.random() * 255;
+          const gNoise = Math.random() * 255;
+          const bNoise = Math.random() * 255;
+
+          // Alpha blend signal with noise
+          data[idx]     = Math.floor(rSignal * (1 - noiseLevel) + rNoise * noiseLevel);
+          data[idx + 1] = Math.floor(gSignal * (1 - noiseLevel) + gNoise * noiseLevel);
+          data[idx + 2] = Math.floor(bSignal * (1 - noiseLevel) + bNoise * noiseLevel);
+          data[idx + 3] = 255;
+        }
+      }
+
+      diffCtx.putImageData(imgData, 0, 0);
+
+      const tLabels = ['t = 50 (Gaussian Noise)', 't = 40 (Coarse Blobs)', 't = 30 (Symmetry Formed)', 't = 20 (Features Visible)', 't = 10 (Fur Texture Denoising)', 't = 0 (Photorealistic Sample)'];
+      document.getElementById('diffusion-badge').textContent = `Step ${tLabels[step]}`;
+      document.getElementById('denoise-step-label').textContent = tLabels[step];
+    }
+
+    function setGenSubject(subj) {
+      playSound(subj);
+      genTarget = subj;
+      const catBtn = document.getElementById('btn-gen-cat');
+      const dogBtn = document.getElementById('btn-gen-dog');
+      if (subj === 'cat') {
+        catBtn.className = 'px-3 py-1.5 rounded-lg bg-pink-600 text-white font-medium text-xs shadow transition';
+        dogBtn.className = 'px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-xs border border-slate-700 transition';
+      } else {
+        dogBtn.className = 'px-3 py-1.5 rounded-lg bg-blue-600 text-white font-medium text-xs shadow transition';
+        catBtn.className = 'px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-xs border border-slate-700 transition';
+      }
+      renderDiffusionFrame(currentDenoiseStep, genTarget);
+    }
+
+    function updateDiffusionSlider(val) {
+      playSound('click');
+      currentDenoiseStep = parseInt(val, 10);
+      renderDiffusionFrame(currentDenoiseStep, genTarget);
+    }
+
+    let quizScore = 0;
+    const answered = { 1: false, 2: false, 3: false };
+
+    function answerQuiz(qNum, optIdx, isCorrect) {
+      if (answered[qNum]) return;
+      answered[qNum] = true;
+
+      const card = document.getElementById(`q${qNum}-card`);
+      const buttons = card.querySelectorAll('.q-opt');
+      const feedback = document.getElementById(`q${qNum}-feedback`);
+
+      buttons.forEach((btn, idx) => {
+        btn.disabled = true;
+        btn.classList.remove('hover:border-slate-700');
+        if (idx === optIdx) {
+          if (isCorrect) {
+            btn.classList.add('bg-emerald-950', 'border-emerald-500', 'text-emerald-200');
+          } else {
+            btn.classList.add('bg-red-950', 'border-red-500', 'text-red-200');
+          }
+        }
+      });
+
+      feedback.classList.remove('hidden');
+      if (isCorrect) {
+        playSound('correct');
+        quizScore++;
+        feedback.className = 'mt-3 text-xs font-semibold text-emerald-400 p-2.5 rounded bg-emerald-950/50 border border-emerald-800/50';
+        feedback.textContent = '✓ Correct! Great job identifying the theoretical principle.';
+      } else {
+        playSound('wrong');
+        feedback.className = 'mt-3 text-xs font-semibold text-red-400 p-2.5 rounded bg-red-950/50 border border-red-800/50';
+        feedback.textContent = '✗ Incorrect. Review the section definitions above to see why!';
+      }
+
+      document.getElementById('quiz-score-badge').textContent = `Score: ${quizScore} / 3`;
+      if (quizScore === 3) {
+        document.getElementById('quiz-score-badge').className = 'px-3 py-1 rounded-full bg-emerald-950 text-emerald-300 font-mono text-xs border border-emerald-600';
+      }
+    }
+
+    window.addEventListener('load', () => {
+      setParadigm('supervised');
+      resizeCanvas();
+      evaluateProbe();
+      renderDiffusionFrame(0, 'cat');
+    });
+
+    window.addEventListener('resize', () => {
+      resizeCanvas();
+    });
+  </script>
+</body>
+</html>
